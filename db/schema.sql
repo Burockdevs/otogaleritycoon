@@ -402,7 +402,7 @@ CREATE TABLE achievements (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    icon VARCHAR(10) DEFAULT '🎖️',
+    icon VARCHAR(50) DEFAULT '🎖️',
     category VARCHAR(50) DEFAULT 'trading',
     condition_type VARCHAR(50) NOT NULL,
     condition_value INT DEFAULT 0,
