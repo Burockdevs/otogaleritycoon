@@ -4,7 +4,6 @@ let currentPage = 'home';
 let playerData = {};
 let currentCarId = null;
 let profitChart = null;
-let selectedMechanic = 'normal';
 
 // Utils first to avoid reference errors
 const fmt = n => {
@@ -55,6 +54,7 @@ if (socket && socket.on) {
             notify('Bağlantı yeniden kuruldu! <i class="fa-solid fa-wifi"></i>', 'success');
             // Oyuncu verisini ve mevcut sayfayı tazele
             if (typeof loadPlayer === 'function') loadPlayer();
+            if (socket.emit) socket.emit('join'); // Odaya yeniden katıl
             if (typeof navigateTo === 'function' && currentPage) {
                 const loaders = {
                     home: () => typeof loadHome === 'function' && loadHome(true),
@@ -137,6 +137,7 @@ async function checkAuth() {
 
 async function initGame() {
     try {
+        if (socket && socket.emit) socket.emit('join'); // Odaya katıl
         await loadBrandsForFilter();
         await loadPlayer();
         navigateTo('home');
@@ -1542,13 +1543,9 @@ async function openServiceModal(pcId) {
                     <p style="font-size:12px;margin-bottom:8px">Temizlik: %${car.cleanliness || 0}</p>
                     <button class="btn btn-primary" onclick="washCar(${pcId})" ${(car.cleanliness || 0) >= 95 ? 'disabled' : ''}><i class="fa-solid fa-shower"></i> Yıka (~${fmtPrice(Math.round(car.price * 0.002 + 50))})</button>
                 </div>
-                ${mhPct < 80 ? `<div class="detail-section"><div class="detail-section-title"><i class="fa-solid fa-engine"></i> Motor Değişimi</div>
-                    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Motorunu yenile, aracın değerini artır.</p>
-                    <div style="display:flex;flex-direction:column;gap:6px">
-                        <button class="btn btn-sm btn-ghost" onclick="engineSwap(${pcId},'basic')"><i class="fa-solid fa-hammer"></i> Basit (%65 sağlık) ~${fmtPrice(Math.round(car.price * 0.15))}</button>
-                        <button class="btn btn-sm btn-warning" onclick="engineSwap(${pcId},'performance')"><i class="fa-solid fa-wrench"></i> Performans (%90) ~${fmtPrice(Math.round(car.price * 0.35))}</button>
-                        <button class="btn btn-sm btn-success" onclick="engineSwap(${pcId},'authorized')"><i class="fa-solid fa-building-shield"></i> Yetkili (%100) ~${fmtPrice(Math.round(car.price * 0.6))}</button>
-                    </div>
+                ${mhPct < 85 ? `<div class="detail-section"><div class="detail-section-title"><i class="fa-solid fa-engine"></i> Motor Yenileme</div>
+                    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Motorunuzu %100 sağlıklı hale getirin.</p>
+                    <button class="btn btn-sm btn-success" style="width:100%" onclick="engineSwap(${pcId})"><i class="fa-solid fa-building-shield"></i> Motoru Yenile (~${fmtPrice(Math.round(car.price * 0.45))})</button>
                 </div>` : ''}
             </div>
         </div>`;
@@ -1594,10 +1591,9 @@ async function washCar(pcId) {
     else notify(r.error, 'error');
 }
 
-async function engineSwap(pcId, engineType) {
-    const typeNames = { basic: 'Basit', performance: 'Performans', authorized: 'Yetkili Servis' };
-    if (!await showConfirm(`${typeNames[engineType]} motor değişimi yapılsın mı?`)) return;
-    const r = await post('/api/player/engine-swap/' + pcId, { engine_type: engineType });
+async function engineSwap(pcId) {
+    if (!await showConfirm(`Motor yenileme işlemi yapılsın mı?`)) return;
+    const r = await post('/api/player/engine-swap/' + pcId);
     if (r.success) {
         notify(r.message, 'success');
         updateFromResponse(r);
@@ -2907,8 +2903,10 @@ async function submitJoinRace() {
         if (r.success) {
             notify(r.message, 'success');
             closeJoinRaceModal();
-            loadRaces();
+            if (socket && socket.emit) socket.emit('join'); // Odaya katıl
             updateFromResponse(r);
+            loadPlayer();
+            loadRaces(); // Re-load races to update participant count
         } else {
             notify(r.error, 'error');
         }

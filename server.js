@@ -276,7 +276,13 @@ setIO(io);
 
 io.on('connection', (socket) => {
     const req = socket.request;
-    const playerId = req.session ? req.session.playerId : null;
+    socket.on('join', () => {
+        const pid = socket.request.session ? socket.request.session.playerId : null;
+        if (pid) {
+            socket.join(`player_${pid}`);
+            console.log(`🔌 Oyuncu odaya katıldı (manual join): ${pid}`);
+        }
+    });
 
     if (playerId) {
         socket.join(`player_${playerId}`);

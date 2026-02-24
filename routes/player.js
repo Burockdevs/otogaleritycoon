@@ -1030,28 +1030,11 @@ router.post('/engine-swap/:playerCarId', async (req, res) => {
         if (pCars.length === 0) return res.json({ success: false, error: 'Araç bulunamadı' });
         const pCar = pCars[0];
 
-        let cost, newHealth, newEngineStatus, newHp;
-        const baseHp = pCar.horsepower || 150;
-
-        switch (engine_type) {
-            case 'basic':
-                cost = Math.round(pCar.price * 0.15);
-                newHealth = 65; newEngineStatus = 'Orta';
-                newHp = Math.round(baseHp * 0.8);
-                break;
-            case 'performance':
-                cost = Math.round(pCar.price * 0.35);
-                newHealth = 90; newEngineStatus = 'İyi';
-                newHp = Math.round(baseHp * 1.1);
-                break;
-            case 'authorized':
-                cost = Math.round(pCar.price * 0.6);
-                newHealth = 100; newEngineStatus = 'Mükemmel';
-                newHp = baseHp;
-                break;
-            default:
-                return res.json({ success: false, error: 'Geçersiz motor tipi' });
-        }
+        // Tek tip motor yenileme (Authorized kalitesinde)
+        cost = Math.round(pCar.price * 0.45); // Ortalama bir maliyet
+        newHealth = 100;
+        newEngineStatus = 'Mükemmel';
+        newHp = baseHp;
 
         const p = await getPlayer(pid);
         if (p.balance < cost) return res.json({ success: false, error: `Yetersiz bakiye! Motor: ${cost.toLocaleString('tr-TR')}₺` });
