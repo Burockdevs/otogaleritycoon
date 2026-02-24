@@ -141,10 +141,21 @@ app.use((req, res, next) => {
 });
 
 // ============ SESSION ============
+const MySQLStore = require('express-mysql-session')(session);
+const { pool } = require('./db/connection');
+
+const sessionStore = new MySQLStore({
+    clearExpired: true,
+    checkExpirationInterval: 900000,
+    expiration: 86400000 * 7, // 7 days
+    createDatabaseTable: true
+}, pool);
+
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || 'galeri_simulator_secret_key_2026_ultra_secure',
     resave: false,
     saveUninitialized: false,
+    store: sessionStore,
     name: 'ogt_session',
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 gün

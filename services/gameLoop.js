@@ -3,6 +3,10 @@ const { getOfferInterval, generateOfferPrice, calculateMarketValue, calculateApp
 const { createOffer } = require('./npc');
 const { generateNewTrend } = require('./trendService');
 
+const { randomFrom, randomBetween, getEngineForModel, getHorsepowerForEngine, generateParts, calculatePrice, generateDynamicDescription } = require('./carService');
+const { BRANDS, COLORS, INTERIORS, INTERIOR_COLORS, FUEL_TYPES, TRANSMISSIONS, JUNKYARD_DESCRIPTIONS, DAMAGE_STATUSES, ENGINE_STATUSES } = require('../data/brands');
+const { addTreasuryIncome } = require('./treasury');
+
 let io;
 let nextResetTime = Date.now() + 60000;
 
@@ -84,7 +88,6 @@ async function startMasterDayLoop() {
                             `UPDATE player SET balance = balance - ?, loan_remaining = ?, loan_months_left = ?, loan_missed_payments = 0 ${extra} WHERE id = ?`,
                             [payment, newRemaining, newMonths, p.id]
                         );
-                        const { addTreasuryIncome } = require('./treasury');
                         await addTreasuryIncome(pool, payment, `Kredi Taksidi (${p.username})`);
 
                         await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "loan_payment", ?, ?)',
@@ -258,8 +261,6 @@ async function startJunkyardRestockLoop() {
         // Her döngüde 2-3 araç ekle (max 100'e kadar)
         if (currentCount < 100) {
             const toAdd = Math.min(Math.floor(Math.random() * 2) + 2, 100 - currentCount); // 2-3 araç
-            const { randomFrom, randomBetween, getEngineForModel, getHorsepowerForEngine, generateParts } = require('../db/seed');
-            const { BRANDS, COLORS, INTERIORS, INTERIOR_COLORS, FUEL_TYPES, TRANSMISSIONS, JUNKYARD_DESCRIPTIONS } = require('../data/brands');
 
             for (let j = 0; j < toAdd; j++) {
                 const brand = randomFrom(BRANDS.filter(b => b.prestige <= 5));
@@ -308,9 +309,6 @@ async function startJunkyardRestockLoop() {
 // Yardımcı fonksiyonlar (Kısa halleriyle korundu)
 async function addRandomCarToMarket(forceCheap = false) {
     try {
-        const { calculatePrice, generateParts, generateDynamicDescription, randomFrom, randomBetween } = require('./carService');
-        const { COLORS, DAMAGE_STATUSES, ENGINE_STATUSES } = require('../data/brands');
-
         let query = 'SELECT m.*, b.name as brand_name, b.prestige, b.id as brand_id FROM models m JOIN brands b ON m.brand_id = b.id';
         if (forceCheap) query += ' WHERE b.prestige <= 3 AND m.tier <= 2';
         query += ' ORDER BY RAND() LIMIT 1';

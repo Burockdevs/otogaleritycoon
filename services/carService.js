@@ -105,11 +105,31 @@ function calculatePrice(basePrice, year, km, damageStatus, engineStatus, tier) {
     return Math.round(price);
 }
 
+// Motor bilgisi seçimi
+function getEngineForModel(tier, prestige) {
+    const tierEngines = {
+        1: ['1.0', '1.2', '1.3', '1.4', '1.5'],
+        2: ['1.4', '1.5', '1.6', '1.8', '2.0'],
+        3: ['1.8', '2.0', '2.5', '3.0', '3.5'],
+        4: ['3.0', '3.5', '4.0', '4.4', '5.0', '6.0', '6.3', '8.0']
+    };
+    const engines = tierEngines[tier] || tierEngines[1];
+    return randomFrom(engines);
+}
+
+function getHorsepowerForEngine(engineSize, tier) {
+    const size = parseFloat(engineSize);
+    const base = size * 60 + tier * 20;
+    return Math.round(base + randomBetween(-15, 30));
+}
+
 module.exports = {
     weightedRandom,
     randomFrom,
     randomBetween,
     generateParts,
     generateDynamicDescription,
-    calculatePrice
+    calculatePrice,
+    getEngineForModel,
+    getHorsepowerForEngine
 };
