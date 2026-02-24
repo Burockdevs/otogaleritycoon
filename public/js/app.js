@@ -4,6 +4,7 @@ let currentPage = 'home';
 let playerData = {};
 let currentCarId = null;
 let profitChart = null;
+let isLoggedIn = false;
 
 // Utils first to avoid reference errors
 const fmt = n => {
@@ -90,6 +91,7 @@ function showAuthScreen() {
     if (screen) {
         screen.classList.remove('hidden');
         screen.style.display = 'flex';
+        switchAuthTab('login'); // Her zaman giriş sekmesiyle aç
     }
     // Ana UI'ı gizle ya da pointerEvents kapat
     const els = ['.top-bar', '.sidebar', '.main-content', '.bottom-nav', '.more-menu-overlay', '.more-menu', '.xp-bar-container', '.xp-text', '.risk-bar-container'];
@@ -100,6 +102,7 @@ function showAuthScreen() {
 }
 
 function hideAuthScreen() {
+    isLoggedIn = true;
     const screen = document.getElementById('authScreen');
     if (screen) {
         screen.classList.add('hidden');
@@ -146,6 +149,7 @@ async function initGame() {
     } finally {
         const loader = document.getElementById('globalLoader');
         if (loader) loader.classList.add('hidden');
+        if (!isLoggedIn) showAuthScreen();
     }
 }
 
@@ -405,12 +409,17 @@ function closeAboutModal() {
 
 // ============ LOGOUT ============
 async function logout() {
+    if (isLoggedIn) {
+        if (!await showConfirm('Çıkış istiyor musunuz?')) return;
+    }
+
     try {
+        isLoggedIn = false;
+        playerData = {};
         await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } catch (e) { }
+
     showAuthScreen();
-    switchAuthTab('login');
-    document.getElementById('authError').textContent = '';
     notify('Çıkış yapıldı.', 'info');
 }
 
@@ -842,10 +851,7 @@ function setupDayTimer() {
 // Socket senkronizasyonu
 // Socket senkronizasyonu
 socket.on('day_reset', (data) => {
-    // Giriş yapmadan bildirim gösterme
-    const authScreen = document.getElementById('authScreen');
-    if (authScreen && authScreen.classList.contains('active')) return;
-
+    if (!isLoggedIn) return;
     timeLeft = data.nextResetIn || 30;
     notify('Yeni bir gün başladı! <i class="fa-solid fa-sun-bright"></i> Teklifler güncellendi.', 'info');
     if (window.dayTimerInterval) {
@@ -2397,13 +2403,6 @@ async function resetGame() {
     if (r.success) { notify('Oyun sıfırlandı!', 'success'); loadPlayer(); navigateTo('explore'); }
 }
 
-async function logout() {
-    if (!await showConfirm('Çıkış yapmak istiyor musunuz?')) return;
-    await post('/api/auth/logout');
-    showAuthScreen();
-    playerData = {};
-}
-
 // ============ AVATAR SEÇİMİ ============
 async function selectAvatar(path) {
     const r = await post('/api/player/update-avatar', { avatar: path });
@@ -2771,12 +2770,14 @@ async function claimAchievement(id) {
 // day_reset listener consolidated at line 329
 
 socket.on('offer_received', (data) => {
-    notify(`< i class="fa-solid fa-box" ></i > Yeni bir teklif aldınız!(${data.brand} ${data.model})`, 'offer');
+    if (!isLoggedIn) return;
+    notify(`<i class="fa-solid fa-box"></i> Yeni bir teklif aldınız! (${data.brand} ${data.model})`, 'offer');
     if (currentPage === 'listings') loadListings();
 });
 
 socket.on('new_auction_bid', (bid) => {
-    notify(`< i class="fa-solid fa-tag" ></i > ${bid.npc_name} ${fmtPrice(bid.bid_price)} teklif etti!`, 'offer');
+    if (!isLoggedIn) return;
+    notify(`<i class="fa-solid fa-tag"></i> ${bid.npc_name} ${fmtPrice(bid.bid_price)} teklif etti!`, 'offer');
     if (currentPage === 'listings') loadListings();
 });
 
@@ -2791,11 +2792,13 @@ socket.on('prestige_update', (data) => {
 });
 
 socket.on('market_update', (data) => {
+    if (!isLoggedIn) return;
     notify(data.message.replace('<i class="fa-solid fa-money-bill-wave"></i>', '<i class="fa-solid fa-money-bill-wave"></i>'), 'info');
     // Sayfa yenilenmesini (loadCars) kapattık ki kullanıcı keşfette aşağılardayken en başa atmasın.
 });
 
 socket.on('loan_update', (data) => {
+    if (!isLoggedIn) return;
     notify(data.message, data.type === 'seized' || data.type === 'missed' ? 'error' : 'success');
     loadPlayer();
     if (currentPage === 'bank') loadBank();
@@ -2809,16 +2812,20 @@ socket.on('risk_update', (data) => {
 });
 
 socket.on('police_seizure', (data) => {
-    notify(`POLİS! ${data.car_name} aracınıza el konuldu! Risk: % 100`, 'error');
+    if (!isLoggedIn) return;
+    notify(`POLİS! ${data.car_name} aracınıza el konuldu! Risk: %100`, 'error');
     loadPlayer();
     if (currentPage === 'illegal') loadIllegal();
     if (currentPage === 'mycars') loadMyCars();
 });
 
-socket.on('player_update', () => { loadPlayer(); });
+socket.on('player_update', () => {
+    if (isLoggedIn) loadPlayer();
+});
 
 socket.on('new_offer', (offer) => {
-    notify(`Yeni Teklif! ${offer.npc_name}: ${fmtPrice(offer.offer_price)} `, 'offer');
+    if (!isLoggedIn) return;
+    notify(`Yeni Teklif! ${offer.npc_name}: ${fmtPrice(offer.offer_price)}`, 'offer');
     if (currentPage === 'listings') loadListings();
 });
 
