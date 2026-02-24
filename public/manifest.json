@@ -1,0 +1,23 @@
+{
+    "name": "OtoGaleri Tycoon TR - Araç Galericisi Simülasyonu",
+    "short_name": "OtoGaleri Tycoon",
+    "description": "Kendi araç galerinizi açın, araç alıp satın, personel yönetin ve en iyi galericinin kim olduğunu kanıtlayın! Gerçekçi piyasa, ekspertiz, tamir, boyama ve daha fazlası.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#3b82f6",
+    "orientation": "portrait-primary",
+    "lang": "tr",
+    "categories": [
+        "games",
+        "simulation",
+        "business"
+    ],
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "64x64",
+            "type": "image/x-icon"
+        }
+    ]
+}

@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - OtoGaleri Tycoon TR</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous">
+    <style>
+        :root {
+            --bg: #0B1121;
+            --bg-card: #111827;
+            --bg-input: #1a2234;
+            --bg-hover: #1f2b42;
+            --border: rgba(42, 58, 82, 0.6);
+            --text: #f1f5f9;
+            --text-sec: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --premium: #a855f7;
+            --gold: #fbbf24;
+            --radius: 2px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ============ LOGIN ============ */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 40px;
+            width: 380px;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        .login-box h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .login-box p {
+            color: var(--text-sec);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        .login-box input:focus {
+            border-color: var(--accent);
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent), #2563eb);
+            color: #fff;
+            border: none;
+            border-radius: 2px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-box button:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* ============ LAYOUT ============ */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            width: 240px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .admin-logo {
+            font-size: 20px;
+            font-weight: 800;
+            padding: 8px 12px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent), var(--premium));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .admin-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-sec);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 2px;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .admin-nav-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .admin-nav-btn.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .admin-nav-btn .nav-icon {
+            font-size: 18px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .admin-nav-spacer {
+            flex: 1;
+        }
+
+        .admin-nav-btn.logout {
+            color: var(--danger);
+        }
+
+        .admin-main {
+            margin-left: 240px;
+            flex: 1;
+            padding: 24px;
+        }
+
+        /* ============ SECTIONS ============ */
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            color: var(--text-sec);
+            font-size: 14px;
+            margin-top: -16px;
+            margin-bottom: 20px;
+        }
+
+        /* ============ STATS ============ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+        }
+
+        .stat-card .sc-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .sc-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .stat-card .sc-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ============ TABLE ============ */
+        .admin-toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .admin-search {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .admin-search:focus {
+            border-color: var(--accent);
+        }
+
+        .admin-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 2px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .admin-btn.primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .admin-btn.danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .admin-btn.success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .admin-btn.ghost {
+            background: transparent;
+            color: var(--text-sec);
+            border: 1px solid var(--border);
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+
+        .admin-btn.sm {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+
+        .admin-select {
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .admin-select option {
+            background: var(--bg-card);
+        }
+
+        .admin-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-card);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .badge-yellow {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .badge-blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        /* ============ MODAL ============ */
+        .admin-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .admin-modal-overlay.active {
+            display: flex;
+        }
+
+        .admin-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 28px;
+            width: 480px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .admin-modal h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .admin-modal .form-group {
+            margin-bottom: 14px;
+        }
+
+        .admin-modal label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-sec);
+            margin-bottom: 6px;
+        }
+
+        .admin-modal input,
+        .admin-modal textarea,
+        .admin-modal select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .admin-modal textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .admin-modal input:focus,
+        .admin-modal textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* ============ BROADCAST ============ */
+        .broadcast-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 600px;
+        }
+
+        .broadcast-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        /* ============ FEEDBACK CARD ============ */
+        .fb-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .fb-card:hover {
+            border-color: var(--accent);
+        }
+
+        .fb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .fb-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .fb-msg {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .fb-reply-box {
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
+        .fb-reply-box strong {
+            color: var(--premium);
+            font-size: 12px;
+        }
+
+        .fb-reply-box p {
+            font-size: 13px;
+            color: var(--text-sec);
+            margin-top: 4px;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 60px;
+                padding: 12px 6px;
+            }
+
+            .admin-sidebar .admin-logo,
+            .admin-sidebar .nav-label {
+                display: none;
+            }
+
+            .admin-nav-btn {
+                justify-content: center;
+                padding: 10px;
+            }
+
+            .admin-nav-btn .nav-icon {
+                min-width: unset;
+            }
+
+            .admin-main {
+                margin-left: 60px;
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- LOGIN -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h1><i class="fa-solid fa-shield-halved"></i> Admin Panel</h1>
+            <p>OtoGaleri Tycoon yönetim paneli</p>
+            <input type="password" id="adminPassword" placeholder="Admin şifresi..."
+                onkeydown="if(event.key==='Enter')adminLogin()">
+            <button onclick="adminLogin()">Giriş Yap</button>
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="admin-layout" id="adminLayout" style="display:none">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><i class="fa-solid fa-shield-halved"></i> Admin Panel</div>
+            <button class="admin-nav-btn active" onclick="showSection('dashboard', this)">
+                <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span><span
+                    class="nav-label">Dashboard</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('players', this)">
+                <span class="nav-icon"><i class="fa-solid fa-users"></i></span><span class="nav-label">Oyuncular</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('listings', this)">
+                <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span><span
+                    class="nav-label">İlanlar</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('feedbacks', this)">
+                <span class="nav-icon"><i class="fa-solid fa-comments"></i></span><span class="nav-label">Geri
+                    Bildirim</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('loans', this)">
+                <span class="nav-icon"><i class="fa-solid fa-building-columns"></i></span><span class="nav-label">Kredi
+                    Talepleri</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('organizer', this)">
+                <span class="nav-icon"><i class="fa-solid fa-flag-checkered"></i></span><span
+                    class="nav-label">Organizatör</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('impounded', this)">
+                <span class="nav-icon"><i class="fa-solid fa-building-shield"></i></span><span class="nav-label">Devlet
+                    Otoparkı</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('broadcast', this)">
+                <span class="nav-icon"><i class="fa-solid fa-bullhorn"></i></span><span class="nav-label">Duyuru</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('bank', this)">
+                <span class="nav-icon"><i class="fa-solid fa-building-columns"></i></span><span class="nav-label">Banka
+                    & Ekonomi</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('trends', this)">
+                <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span><span
+                    class="nav-label">Trendler</span>
+            </button>
+            <button class="admin-nav-btn" onclick="showSection('events', this)">
+                <span class="nav-icon"><i class="fa-solid fa-gift"></i></span><span class="nav-label">Etkinlik &
+                    Çekiliş</span>
+            </button>
+            <div class="admin-nav-spacer"></div>
+            <button class="admin-nav-btn" onclick="window.location.href='/'">
+                <span class="nav-icon"><i class="fa-solid fa-house"></i></span><span class="nav-label">Siteye Dön</span>
+            </button>
+            <button class="admin-nav-btn logout" onclick="adminLogout()">
+                <span class="nav-icon"><i class="fa-solid fa-door-open"></i></span><span class="nav-label">Çıkış</span>
+            </button>
+        </aside>
+
+        <main class="admin-main">
+            <!-- DASHBOARD -->
+            <div class="admin-section active" id="sec-dashboard">
+                <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> Dashboard</h2>
+                <div class="stats-grid" id="statsGrid"></div>
+            </div>
+
+            <!-- PLAYERS -->
+            <div class="admin-section" id="sec-players">
+                <h2 class="section-title"><i class="fa-solid fa-users"></i> Oyuncu Yönetimi</h2>
+                <div class="admin-toolbar">
+                    <input class="admin-search" id="playerSearch" placeholder="Kullanıcı adı veya isim ara..."
+                        onkeydown="if(event.key==='Enter')loadPlayers()">
+                    <button class="admin-btn primary" onclick="loadPlayers()"><i
+                            class="fa-solid fa-magnifying-glass"></i> Ara</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Kullanıcı</th>
+                                <th>İsim</th>
+                                <th>Bakiye</th>
+                                <th>Seviye</th>
+                                <th>Kâr</th>
+                                <th>Araç</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTable"></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="playersPagination"></div>
+            </div>
+
+            <!-- LISTINGS -->
+            <div class="admin-section" id="sec-listings">
+                <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> İlan Yönetimi</h2>
+                <div class="admin-toolbar">
+                    <select class="admin-select" id="listingStatus" onchange="loadListings()">
+                        <option value="active">Aktif</option>
+                        <option value="sold">Satılmış</option>
+                        <option value="cancelled">İptal</option>
+                    </select>
+                    <button class="admin-btn primary" onclick="loadListings()"><i class="fa-solid fa-arrows-rotate"></i>
+                        Yenile</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Oyuncu</th>
+                                <th>Araç</th>
+                                <th>Fiyat</th>
+                                <th>Tarih</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listingsTable"></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="listingsPagination"></div>
+            </div>
+
+            <!-- IMPOUNDED CARS -->
+            <div class="admin-section" id="sec-impounded">
+                <h2 class="section-title"><i class="fa-solid fa-building-shield"></i> Devlet Otoparkı (Haciz)</h2>
+                <div class="admin-toolbar">
+                    <button class="admin-btn primary" onclick="loadImpounded()"><i
+                            class="fa-solid fa-arrows-rotate"></i>
+                        Yenile</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Eski Sahibi</th>
+                                <th>Araç</th>
+                                <th>Sağlık</th>
+                                <th>Değer</th>
+                                <th>Tarih</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="impoundedTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LOAN REQUESTS -->
+            <div class="admin-section" id="sec-loans">
+                <h2 class="section-title"><i class="fa-solid fa-building-columns"></i> Kredi Talepleri</h2>
+                <div class="admin-toolbar">
+                    <button class="admin-btn primary" onclick="loadLoanRequests()"><i
+                            class="fa-solid fa-arrows-rotate"></i>
+                        Yenile</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Oyuncu</th>
+                                <th>Seviye</th>
+                                <th>Tutar / Vade</th>
+                                <th>Neden</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- FEEDBACKS -->
+            <div class="admin-section" id="sec-feedbacks">
+                <h2 class="section-title"><i class="fa-solid fa-comments"></i> Geri Bildirimler</h2>
+                <div class="admin-toolbar">
+                    <select class="admin-select" id="fbStatus" onchange="loadFeedbacks()">
+                        <option value="">Tümü</option>
+                        <option value="open">Bekliyor</option>
+                        <option value="in_progress">İnceleniyor</option>
+                        <option value="resolved">Çözüldü</option>
+                        <option value="closed">Kapatıldı</option>
+                    </select>
+                    <button class="admin-btn primary" onclick="loadFeedbacks()"><i
+                            class="fa-solid fa-arrows-rotate"></i> Yenile</button>
+                </div>
+                <div id="feedbacksList"></div>
+                <div class="pagination" id="fbPagination"></div>
+            </div>
+
+            <!-- ============ ORGANİZATÖR (YARIŞ VE TRENDLER) ============ -->
+            <div class="admin-section" id="sec-organizer">
+                <h2 class="section-title"><i class="fa-solid fa-flag-checkered"></i> Organizatör & Etkinlikler</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: var(--success);"><i
+                                class="fa-solid fa-trophy"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalRaces">0</span>
+                            <span class="stat-label">Toplam Yarışlar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-grid"
+                    style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
+
+                    <!-- YARIŞ OLUŞTURMA -->
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-plus"></i> Yeni Yarış Oluştur</h3>
+                        <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Oyuncuların şahsi
+                            araçlarıyla katılıp büyük ödüller kazanabileceği resmi yarışlar düzenle.</p>
+
+                        <div class="form-group">
+                            <label>Yarış Adı</label>
+                            <input type="text" id="raceName" placeholder="Örn: Hafta Sonu Kupası">
+                        </div>
+                        <div class="form-group">
+                            <label>Açıklama (Opsiyonel)</label>
+                            <input type="text" id="raceDesc" placeholder="Örn: Sokak araçlarına özel!">
+                        </div>
+                        <div class="form-group">
+                            <label>Katılım Ücreti (₺)</label>
+                            <input type="number" id="raceFee" value="5000">
+                        </div>
+                        <div class="form-group">
+                            <label>Maksimum Katılımcı</label>
+                            <input type="number" id="raceMaxParticipants" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Başlama Süresi (Dakika)</label>
+                            <input type="number" id="raceStartsIn" value="60">
+                        </div>
+
+                        <button class="admin-btn active" style="width:100%" onclick="createRace()"><i
+                                class="fa-solid fa-flag-checkered"></i> Yarışı Yayına Al</button>
+                    </div>
+
+                    <!-- Aktif Yarışlar Listesi -->
+                    <div class="admin-card">
+                        <h3 style="margin-bottom:15px;"><i class="fa-solid fa-list"></i> Son Planlanan Yarışlar</h3>
+                        <div class="table-container"
+                            style="max-height: 250px; overflow-y:auto; border: 1px solid var(--border); border-radius:4px;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Yarış</th>
+                                        <th>Bilet</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="racesTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRENDLER -->
+            <div class="admin-section" id="sec-trends">
+                <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> Trendler</h2>
+                <div class="admin-grid" style="display:grid; grid-template-columns: 1fr; gap:20px; max-width:800px;">
+                    <div class="admin-card">
+                        <h3>Global Market Trendleri</h3>
+                        <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Araç fiyatlarını, teklif
+                            düşme oranlarını ve oyundaki dönemsel ekonomik olayları manuel olarak tetikle.</p>
+                        <div class="form-group">
+                            <label>Aktif Trend</label>
+                            <div id="activeTrendInfo"
+                                style="padding:12px; background:var(--bg-input); border-left:4px solid var(--accent); border-radius:4px; margin-bottom:15px;">
+                                Yükleniyor...</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Manuel Trend Başlat</label>
+                            <select class="admin-select" id="manualTrendSelect">
+                                <option value="">Yükleniyor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Geçerlilik Süresi (Saat)</label>
+                            <input type="number" id="manualTrendDuration" value="24" placeholder="Örn: 12">
+                        </div>
+                        <div class="form-group"
+                            style="margin-bottom:20px; padding:15px; background:rgba(59,130,246,0.05); border:1px solid var(--border); border-radius:4px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:700; font-size:14px;"><i
+                                            class="fa-solid fa-arrows-spin"></i> Otomatik Trend Döngüsü</div>
+                                    <div style="font-size:12px; color:var(--text-sec);">Sistem belirli aralıklarla
+                                        otomatik trend oluşturur veya piyasayı normale çevirir.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoTrendsToggle" onchange="toggleAutoTrends()">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="admin-btn success" style="flex:1" onclick="startTrend()"><i
+                                    class="fa-solid fa-play"></i> Trendi Başlat</button>
+                            <button class="admin-btn danger" style="flex:1" onclick="stopTrend()"><i
+                                    class="fa-solid fa-stop"></i> Trendi Kapat (Normale Dön)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BANKA & EKONOMI -->
+            <div class="admin-section" id="sec-bank">
+                <h2 class="section-title"><i class="fa-solid fa-building-columns"></i> Banka & Ekonomi Ayarları</h2>
+                <div class="admin-grid" style="display:grid; grid-template-columns: 1fr; gap:20px; max-width:800px;">
+                    <div class="admin-card">
+                        <h3>Merkez Bankası Faiz Düzenlemesi</h3>
+                        <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Oyun içindeki genel
+                            kredi faiz oranlarına uygulanacak olan Merkez Bankası politika faiz oranını (modifier)
+                            ayarlayın.</p>
+
+                        <div class="form-group">
+                            <label>Manuel Faiz Oranı Düzenleyici (%)</label>
+                            <input type="number" step="0.1" id="bankInterestModifier"
+                                placeholder="Örneğin: 1.5 veya -0.5">
+                            <small style="display:block; margin-top:5px; color:var(--text-sec);"><i
+                                    class="fa-solid fa-circle-info"></i> Pozitif değerler faizi artırır, negatif
+                                değerler düşürür.</small>
+                        </div>
+                        <button class="admin-btn primary" onclick="saveBankSettings()"><i
+                                class="fa-solid fa-floppy-disk"></i> Ayarları Kaydet ve Duyur</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ETKİNLİK VE PROM. -->
+            <div class="admin-section" id="sec-events">
+                <h2 class="section-title"><i class="fa-solid fa-gift"></i> Etkinlik & Promosyon Yönetimi</h2>
+                <div class="admin-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-ticket"></i> Sistem Çekilişi (Rastgele)</h3>
+                        <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Sistemde banlı olmayan
+                            rastgele bir oyuncuyu seçer ve kasadan promosyon ödülü gönderir.</p>
+                        <div class="form-group">
+                            <label>Ödül Miktarı (₺)</label>
+                            <input type="number" id="raffleAmount" value="250000">
+                        </div>
+                        <button class="admin-btn premium" onclick="runEvent('raffle')"><i class="fa-solid fa-dice"></i>
+                            Çekilişi Başlat</button>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-medal"></i> Ayın En İyi Satıcısı Eğitimi</h3>
+                        <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Oyundaki en çok "Kar"
+                            oranına (Total Profit) sahip oyuncuyu bularak kendisini ödüllendirir.</p>
+                        <div class="form-group">
+                            <label>Ödül Miktarı (₺)</label>
+                            <input type="number" id="topSellerAmount" value="1000000">
+                        </div>
+                        <button class="admin-btn success" onclick="runEvent('top-seller')"><i
+                                class="fa-solid fa-crown"></i> Ayın Satıcısını Ödüllendir</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- BROADCAST -->
+            <div class="admin-section" id="sec-broadcast">
+                <h2 class="section-title"><i class="fa-solid fa-bullhorn"></i> Toplu Duyuru</h2>
+                <p class="section-subtitle">Tüm oyunculara bildirim gönder</p>
+                <div class="broadcast-card">
+                    <div class="form-group">
+                        <label>Başlık</label>
+                        <input id="broadcastTitle" placeholder="Duyuru başlığı...">
+                    </div>
+                    <div class="form-group">
+                        <label>Mesaj</label>
+                        <textarea id="broadcastMessage" rows="4" placeholder="Duyuru mesajınız..."></textarea>
+                    </div>
+                    <button class="admin-btn primary" onclick="sendBroadcast()" style="margin-top:12px"><i
+                            class="fa-solid fa-bullhorn"></i> Tüm
+                        Oyunculara Gönder</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Player Balance -->
+    <div class="admin-modal-overlay" id="balanceModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-money-bill-wave"></i> Bakiye Düzenle</h3>
+            <div class="form-group">
+                <label>İşlem</label>
+                <select id="balanceAction">
+                    <option value="add">İlave et</option>
+                    <option value="remove">Azalt</option>
+                    <option value="set">Ayarla</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Miktar (₺)</label>
+                <input type="number" id="balanceAmount" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Açıklama (İsteğe Bağlı)</label>
+                <input type="text" id="balanceMessage" placeholder="Oyuncuya gidecek olan bildirim detayı...">
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('balanceModal')">İptal</button>
+                <button class="admin-btn success" onclick="submitBalance()"><i class="fa-solid fa-check"></i>
+                    Uygula</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Distribute Funds (Hazine Dağıtımı) -->
+    <div class="admin-modal-overlay" id="distributeModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-hand-holding-dollar"></i> Hazine Desteği Dağıt</h3>
+            <p style="font-size: 13px; color: var(--text-sec); margin-bottom: 15px;">
+                Tüm aktif (banlanmamış) oyunculara belirtilen miktarı nakit olarak gönderin. Tutar Devlet Hazinesi'nden
+                düşülecektir.
+            </p>
+            <div class="form-group">
+                <label>Kişi Başı Miktar (₺)</label>
+                <input type="number" id="distributeAmount" placeholder="Örn: 500000">
+            </div>
+            <div class="form-group">
+                <label>Açıklama / Sebep (Bildirim İçin)</label>
+                <input type="text" id="distributeReason" placeholder="Bayram harçlığı, etkinlik ödülü vb.">
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('distributeModal')">İptal</button>
+                <button class="admin-btn success" onclick="submitDistribute()"><i class="fa-solid fa-paper-plane"></i>
+                    Dağıtımı Başlat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Give Car -->
+    <div class="admin-modal-overlay" id="giveCarModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-car"></i> Araç Hediye Et</h3>
+            <div class="form-group">
+                <label>Araç Arama / Seçme</label>
+                <select id="giveCarSelect">
+                    <!-- Araç listesi dinamik doldurulacak -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Açıklama (İsteğe Bağlı)</label>
+                <input type="text" id="giveCarMessage" placeholder="Hediye açıklaması (örn: Etkinlik Kazananı)">
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('giveCarModal')">İptal</button>
+                <button class="admin-btn success" onclick="submitGiveCar()"><i class="fa-solid fa-gift"></i>
+                    Gönder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Give XP -->
+    <div class="admin-modal-overlay" id="giveXpModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-star"></i> XP / Level Gönder</h3>
+            <div class="form-group">
+                <label>Verilecek XP Miktarı</label>
+                <input type="number" id="giveXpAmount" placeholder="5000">
+            </div>
+            <div class="form-group">
+                <label>Açıklama (İsteğe Bağlı)</label>
+                <input type="text" id="giveXpMessage" placeholder="Tecrübe hediyesi detayı...">
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('giveXpModal')">İptal</button>
+                <button class="admin-btn success" onclick="submitGiveXp()"><i class="fa-solid fa-angle-double-up"></i>
+                    Uygula</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Feedback Reply -->
+    <div class="admin-modal-overlay" id="replyModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-comments"></i> Geri Bildirime Yanıt</h3>
+            <div class="form-group">
+                <label>Mesajınız</label>
+                <textarea id="replyMessage" rows="4" placeholder="Yanıtınızı yazın..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Durum</label>
+                <select id="replyStatus">
+                    <option value="resolved">Çözüldü</option>
+                    <option value="in_progress">İnceleniyor</option>
+                    <option value="closed">Kapatıldı</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('replyModal')">İptal</button>
+                <button class="admin-btn primary" onclick="submitReply()"><i class="fa-solid fa-paper-plane"></i>
+                    Yanıtla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Notify Player -->
+    <div class="admin-modal-overlay" id="notifyModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-envelope"></i> Oyuncuya Mesaj</h3>
+            <div class="form-group">
+                <label>Başlık</label>
+                <input id="notifyTitle" placeholder="Bildirim başlığı...">
+            </div>
+            <div class="form-group">
+                <label>Mesaj</label>
+                <textarea id="notifyMessage" rows="3" placeholder="Mesajınız..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('notifyModal')">İptal</button>
+                <button class="admin-btn primary" onclick="submitNotify()"><i class="fa-solid fa-paper-plane"></i>
+                    Gönder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Loan Action -->
+    <div class="admin-modal-overlay" id="loanModal">
+        <div class="admin-modal">
+            <h3><i class="fa-solid fa-building-columns"></i> Kredi İşlemi</h3>
+            <div class="form-group">
+                <label>İşlem</label>
+                <select id="loanAction"
+                    onchange="document.getElementById('loanCounterGroup').style.display = this.value === 'counter' ? 'block' : 'none'">
+                    <option value="approve">Onayla</option>
+                    <option value="reject">Reddet</option>
+                    <option value="counter">Karşı Teklif Sun</option>
+                </select>
+            </div>
+            <div class="form-group" id="loanCounterGroup" style="display:none;">
+                <label>Karşı Teklif Tutarı (₺)</label>
+                <input type="number" id="loanCounterAmount" placeholder="Örn: 500000">
+            </div>
+            <div class="form-group">
+                <label>Mesaj (İsteğe Bağlı)</label>
+                <input type="text" id="loanAdminMessage" placeholder="Oyuncuya iletilecek mesaj...">
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('loanModal')">İptal</button>
+                <button class="admin-btn success" onclick="submitLoanAction()"><i class="fa-solid fa-check"></i>
+                    Uygula</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESTRICTION MODAL -->
+    <div id="restrictionModal" class="admin-modal-overlay">
+        <div class="admin-modal">
+            <h3 id="restrictionModalTitle"><i class="fa-solid fa-gavel"></i> Oyuncu Engeli</h3>
+            <div class="form-group">
+                <label>İşlem Tipi</label>
+                <select id="restrictionType" class="admin-input">
+                    <option value="login">Oyuna Giriş Yasağı (Ban)</option>
+                    <option value="trade">2. El Ticaret Yasağı (Trade Ban)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Süre</label>
+                <select id="restrictionDuration" class="admin-input">
+                    <option value="0">Engeli Kaldır</option>
+                    <option value="1">1 Saat</option>
+                    <option value="24">1 Gün</option>
+                    <option value="72">3 Gün</option>
+                    <option value="168">1 Hafta</option>
+                    <option value="720">1 Ay</option>
+                    <option value="permanent">Sınırsız (Kalıcı)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sebep / Not (Opsiyonel)</label>
+                <input type="text" id="restrictionReason" class="admin-input" placeholder="Yasaklanma sebebi...">
+            </div>
+            <div class="modal-actions">
+                <button class="admin-btn ghost" onclick="closeModal('restrictionModal')">İptal</button>
+                <button class="admin-btn danger" onclick="submitRestriction()"><i class="fa-solid fa-check"></i>
+                    Uygula</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api/admin';
+        let currentPlayerId = null;
+        let currentFeedbackId = null;
+
+        // Global Fetch Interceptor to catch 403 Session Expiry
+        const originalFetch = window.fetch;
+        window.fetch = async function () {
+            if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].startsWith(API)) {
+                arguments[1] = arguments[1] || {};
+                arguments[1].credentials = 'include';
+            }
+            const response = await originalFetch.apply(this, arguments);
+            if (response.status === 403) {
+                const data = await response.clone().json().catch(() => ({}));
+                if (data.error && (data.error.includes('Admin yetkisi gerekli') || data.error.includes('Admin'))) {
+                    // Session lost, relogin needed
+                    document.getElementById('adminLayout').style.display = 'none';
+                    document.getElementById('loginOverlay').classList.remove('hidden');
+                    const err = document.getElementById('loginError');
+                    err.textContent = 'Oturum süresi doldu, lütfen tekrar giriş yapın.';
+                    err.style.display = 'block';
+                }
+            }
+            return response;
+        };
+        // ============ AUTH ============
+        async function checkAuth() {
+            try {
+                const r = await fetch(`${API}/check`).then(r => r.json());
+                if (r.isAdmin) {
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    document.getElementById('adminLayout').style.display = 'flex';
+                    loadStats();
+                }
+            } catch (e) { }
+        }
+
+        async function adminLogin() {
+            const pw = document.getElementById('adminPassword').value;
+            const r = await fetch(`${API}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) }).then(r => r.json());
+            if (r.success) {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('adminLayout').style.display = 'flex';
+                loadStats();
+            } else {
+                const err = document.getElementById('loginError');
+                err.textContent = r.error;
+                err.style.display = 'block';
+            }
+        }
+
+        async function adminLogout() {
+            await fetch(`${API}/logout`, { method: 'POST' });
+            location.reload();
+        }
+
+        // ============ NAV ============
+        function showSection(name, btn) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`sec-${name}`).classList.add('active');
+            if (btn) btn.classList.add('active');
+            // Lazy load data
+            if (name === 'dashboard') loadStats();
+            else if (name === 'players') loadPlayers();
+            else if (name === 'listings') loadListings();
+            else if (name === 'feedbacks') loadFeedbacks();
+            else if (name === 'loans') loadLoanRequests();
+            else if (name === 'organizer') loadRaces();
+            else if (name === 'bank') loadBankSettings();
+            else if (name === 'trends') { loadActiveTrendAndList(); loadRaces(); }
+        }
+
+        // ============ STATS ============
+        async function loadStats() {
+            try {
+                const r = await fetch(`${API}/stats`).then(r => r.json());
+                if (!r.success) return;
+                const d = r.data;
+                document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-users"></i></div><div class="sc-value">${d.totalPlayers}</div><div class="sc-label">Toplam Oyuncu</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-circle" style="color:var(--success)"></i></div><div class="sc-value">${d.onlineToday}</div><div class="sc-label">Bugün Aktif</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-car"></i></div><div class="sc-value">${d.totalCars}</div><div class="sc-label">Toplam Araç</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-clipboard-list"></i></div><div class="sc-value">${d.activeListings}</div><div class="sc-label">Aktif İlan</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-money-bill-wave"></i></div><div class="sc-value">${fmtMoney(d.totalMoney)}</div><div class="sc-label">Toplam Para (Dolaşımdaki)</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-comments"></i></div><div class="sc-value">${d.totalFeedbacks}</div><div class="sc-label">Geri Bildirim</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-hourglass-start"></i></div><div class="sc-value">${d.openFeedbacks}</div><div class="sc-label">Bekleyen G.B.</div></div>
+                <div class="stat-card"><div class="sc-icon"><i class="fa-solid fa-user-slash"></i></div><div class="sc-value">${d.bannedPlayers}</div><div class="sc-label">Banlı Oyuncu</div></div>
+                <div class="stat-card" style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; background: ${d.maintenanceActive ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-input)'}; border-color: ${d.maintenanceActive ? 'var(--danger)' : 'var(--border)'}">
+                    <div>
+                        <div style="font-weight:700; font-size:16px; margin-bottom:4px; color:${d.maintenanceActive ? 'var(--danger)' : 'var(--text-primary)'}"><i class="fa-solid fa-screwdriver-wrench"></i> Sistem Bakım Modu</div>
+                        <div style="font-size:12px; color:var(--text-muted)">Aktif edildiğinde adminler hariç kimse oyuna giremez.</div>
+                    </div>
+                    <button class="admin-btn ${d.maintenanceActive ? 'danger' : 'success'}" onclick="toggleMaintenance(${!d.maintenanceActive})">
+                        ${d.maintenanceActive ? '<i class="fa-solid fa-lock"></i> Bakımı Kapat (Sistemi Aç)' : '<i class="fa-solid fa-lock-open"></i> Bakıma Al (Sistemi Kilitle)'}
+                    </button>
+                </div>
+            `;
+
+                // Hazine Verileri
+                const tr = await fetch(`${API}/treasury`).then(r => r.json());
+                const t = tr.data || { balance: 0, total_income: 0, total_expense: 0 };
+                document.getElementById('statsGrid').innerHTML += `
+                <div class="stat-card" style="grid-column: 1 / -1; background: var(--bg-card); border: 2px solid var(--gold); border-radius: 12px; padding: 16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-weight:700; font-size:16px; margin-bottom:6px; color:var(--gold)"><i class="fa-solid fa-building-columns"></i> Devlet Hazinesi</div>
+                            <div style="font-size:14px; color:var(--text-primary)">
+                                <span style="margin-right:15px;" title="Kasadaki Tutar"><i class="fa-solid fa-wallet" style="color:var(--text-muted)"></i> <strong>${fmtMoney(t.balance)}</strong></span>
+                                <span style="margin-right:15px; color:var(--success)" title="Kümülatif Gelir"><i class="fa-solid fa-arrow-trend-up"></i> +${fmtMoney(t.total_income)}</span>
+                                <span style="color:var(--danger)" title="Kümülatif Gider"><i class="fa-solid fa-arrow-trend-down"></i> -${fmtMoney(t.total_expense)}</span>
+                            </div>
+                        </div>
+                        <button class="admin-btn btn-premium" onclick="openDistributeModal()" style="border-radius:8px; padding:8px 16px;"><i class="fa-solid fa-hand-holding-dollar"></i> Dağıtım Yap</button>
+                    </div>
+                </div>
+                `;
+            } catch (e) { console.error(e); }
+        }
+
+        async function toggleMaintenance(active) {
+            if (!confirm(active ? 'Sistemi bakım moduna almak istediğinize emin misiniz?' : 'Sistemi bakımdan çıkarmak istediğininize emin misiniz?')) return;
+            const r = await fetch(`${API}/maintenance`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active })
+            }).then(r => r.json());
+            if (r.success) {
+                alert(r.message);
+                loadStats();
+            } else alert(r.error);
+        }
+
+        // ============ RESTRICTIONS ============
+        function openRestrictionModal(id, username, isBanned) {
+            currentPlayerId = id;
+            document.getElementById('restrictionModalTitle').innerHTML = `<i class="fa-solid fa-gavel"></i> Engelle: ${username}`;
+            document.getElementById('restrictionDuration').value = isBanned ? "0" : "24";
+            document.getElementById('restrictionReason').value = "";
+            document.getElementById('restrictionModal').classList.add('active');
+        }
+
+        async function submitRestriction() {
+            if (!currentPlayerId) return;
+            const type = document.getElementById('restrictionType').value;
+            const durationHours = document.getElementById('restrictionDuration').value;
+            const reason = document.getElementById('restrictionReason').value;
+
+            const r = await fetch(`${API}/players/${currentPlayerId}/restrictions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, durationHours: durationHours === 'permanent' ? 'permanent' : parseInt(durationHours), reason })
+            }).then(r => r.json());
+
+            if (r.success) {
+                alert(r.message);
+                closeModal('restrictionModal');
+                loadPlayers(playerPage);
+            } else {
+                alert(r.error || 'Hata oluştu!');
+            }
+        }
+
+        // ============ PLAYERS ============
+        let playerPage = 1;
+        async function loadPlayers(page = 1) {
+            playerPage = page;
+            const search = document.getElementById('playerSearch').value;
+            const r = await fetch(`${API}/players?search=${encodeURIComponent(search)}&page=${page}`).then(r => r.json());
+            if (!r.success) return;
+            const tbody = document.getElementById('playersTable');
+            tbody.innerHTML = r.data.map(p => `
+            <tr>
+                <td>${p.id}</td>
+                <td><strong>${esc(p.username)}</strong></td>
+                <td>${esc(p.name || '-')}</td>
+                <td style="color:var(--gold)">${fmtMoney(p.balance)}</td>
+                <td>Lv.${p.level}</td>
+                <td style="color:var(--success)">${fmtMoney(p.total_profit)}</td>
+                <td>${p.car_count}</td>
+                <td>${p.is_banned ? '<span class="badge badge-red">Banlı</span>' : '<span class="badge badge-green">Aktif</span>'}</td>
+                <td>
+                    <button class="admin-btn sm primary" onclick="openBalanceModal(${p.id})" title="Bakiye"><i class="fa-solid fa-money-bill-wave"></i></button>
+                    <button class="admin-btn sm success" onclick="openGiveXpModal(${p.id})" title="XP/Seviye"><i class="fa-solid fa-star"></i></button>
+                    <button class="admin-btn sm premium" onclick="openGiveCarModal(${p.id})" title="Araç"><i class="fa-solid fa-car"></i></button>
+                    <button class="admin-btn sm ghost" onclick="openNotifyModal(${p.id})" title="Bildirim"><i class="fa-solid fa-envelope"></i></button>
+                    <button class="admin-btn sm ${p.is_banned ? 'success' : 'danger'}" onclick="openRestrictionModal(${p.id}, '${esc(p.username)}', ${p.is_banned})" title="Engellemeler">${p.is_banned ? '<i class="fa-solid fa-user-check"></i>' : '<i class="fa-solid fa-gavel"></i>'}</button>
+                </td>
+            </tr>
+        `).join('');
+            renderPagination('playersPagination', r.totalPages, page, 'loadPlayers');
+        }
+
+        // ============ LISTINGS ============
+        let listingPage = 1;
+        async function loadListings(page = 1) {
+            listingPage = page;
+            const status = document.getElementById('listingStatus').value;
+            const r = await fetch(`${API}/listings?status=${status}&page=${page}`).then(r => r.json());
+            if (!r.success) return;
+            const tbody = document.getElementById('listingsTable');
+            tbody.innerHTML = r.data.map(l => `
+            <tr>
+                <td>${l.id}</td>
+                <td>${esc(l.username)}</td>
+                <td>${esc(l.brand_name)} ${esc(l.model_name)}</td>
+                <td style="color:var(--gold)">${fmtMoney(l.asking_price)}</td>
+                <td>${new Date(l.created_at).toLocaleDateString('tr-TR')}</td>
+                <td><span class="badge ${l.status === 'active' ? 'badge-green' : l.status === 'sold' ? 'badge-blue' : 'badge-yellow'}">${l.status}</span></td>
+                <td>
+                    ${l.status === 'active' ? `<button class="admin-btn sm danger" onclick="deleteListing(${l.id})"><i class="fa-solid fa-trash"></i></button>` : '-'}
+                </td>
+            </tr>
+        `).join('');
+            renderPagination('listingsPagination', r.totalPages, page, 'loadListings');
+        }
+
+        async function deleteListing(id) {
+            if (!confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
+            const r = await fetch(`${API}/listings/${id}`, { method: 'DELETE' }).then(r => r.json());
+            if (r.success) { alert(r.message); loadListings(listingPage); }
+        }
+
+        // ============ FEEDBACKS ============
+        let fbPage = 1;
+        async function loadFeedbacks(page = 1) {
+            fbPage = page;
+            const status = document.getElementById('fbStatus').value;
+            const r = await fetch(`${API}/feedbacks?status=${status}&page=${page}`).then(r => r.json());
+            if (!r.success) return;
+            const typeLabels = { bug: '<i class="fa-solid fa-bug"></i> Hata', suggestion: '<i class="fa-solid fa-lightbulb"></i> Öneri', complaint: '<i class="fa-solid fa-face-angry"></i> Şikayet', other: '<i class="fa-solid fa-thumbtack"></i> Diğer' };
+            const statusLabels = { open: '<i class="fa-solid fa-hourglass-start"></i> Bekliyor', in_progress: '<i class="fa-solid fa-arrows-rotate"></i> İnceleniyor', resolved: '<i class="fa-solid fa-check"></i> Çözüldü', closed: '<i class="fa-solid fa-lock"></i> Kapatıldı' };
+            document.getElementById('feedbacksList').innerHTML = r.data.map(f => `
+            <div class="fb-card">
+                <div class="fb-header">
+                    <div>
+                        <span class="badge badge-blue">${typeLabels[f.type] || f.type}</span>
+                        <span class="badge ${f.status === 'open' ? 'badge-yellow' : f.status === 'resolved' ? 'badge-green' : 'badge-blue'}">${statusLabels[f.status] || f.status}</span>
+                    </div>
+                    <div style="display:flex;gap:6px">
+                        <button class="admin-btn sm primary" onclick="openReplyModal(${f.id})"><i class="fa-solid fa-reply"></i> Yanıtla</button>
+                    </div>
+                </div>
+                <div class="fb-meta"><i class="fa-solid fa-user"></i> ${esc(f.username)} · ${new Date(f.created_at).toLocaleDateString('tr-TR')} · <strong>${esc(f.subject || '-')}</strong></div>
+                <div class="fb-msg">${esc(f.message)}</div>
+                ${f.admin_reply ? `
+                    <div class="fb-reply-box">
+                        <strong><i class="fa-solid fa-shield-halved"></i> Admin Yanıtı (${new Date(f.replied_at).toLocaleDateString('tr-TR')}):</strong>
+                        <p>${esc(f.admin_reply)}</p>
+                    </div>` : ''}
+            </div>
+        `).join('') || '<div style="text-align:center;color:var(--text-muted);padding:40px">Geri bildirim bulunamadı.</div>';
+            renderPagination('fbPagination', r.totalPages, page, 'loadFeedbacks');
+        }
+
+        // ============ LOANS ============
+        let currentLoanId = null;
+        async function loadLoanRequests() {
+            const r = await fetch(`${API}/loan-requests`).then(r => r.json());
+            if (!r.success) return;
+            const tbody = document.getElementById('loansTable');
+            tbody.innerHTML = r.data.map(l => {
+                let statusBadge = '<span class="badge badge-yellow">Bekliyor</span>';
+                if (l.status === 'approved') statusBadge = '<span class="badge badge-green">Onaylandı</span>';
+                if (l.status === 'rejected') statusBadge = '<span class="badge badge-red">Reddedildi</span>';
+                if (l.status === 'counter_offer') statusBadge = '<span class="badge badge-purple">Karşı Teklif</span>';
+                if (l.status === 'accepted') statusBadge = '<span class="badge badge-blue">Kabul Edildi (Karşı)</span>';
+
+                return `
+                <tr>
+                    <td>${l.id}</td>
+                    <td><strong>${esc(l.username)}</strong><br><small style="color:var(--text-muted)">${esc(l.player_name)}</small></td>
+                    <td>Lv.${l.level}</td>
+                    <td><span style="color:var(--gold)">${fmtMoney(l.amount)}</span><br><small>${l.months} Ay Vade</small></td>
+                    <td>${esc(l.reason)}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        ${l.status === 'pending' ? `<button class="admin-btn sm primary" onclick="openLoanModal(${l.id})"><i class="fa-solid fa-gavel"></i> Karar Ver</button>` : '-'}
+                    </td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Bekleyen kredi talebi yok.</td></tr>';
+        }
+
+        function openLoanModal(loanId) {
+            currentLoanId = loanId;
+            document.getElementById('loanAction').value = 'approve';
+            document.getElementById('loanCounterGroup').style.display = 'none';
+            document.getElementById('loanCounterAmount').value = '';
+            document.getElementById('loanAdminMessage').value = '';
+            document.getElementById('loanModal').classList.add('active');
+        }
+
+        async function submitLoanAction() {
+            const action = document.getElementById('loanAction').value;
+            const counterAmount = parseFloat(document.getElementById('loanCounterAmount').value);
+            const adminMessage = document.getElementById('loanAdminMessage').value;
+
+            if (action === 'counter' && (!counterAmount || counterAmount <= 0)) {
+                return alert('Karşı teklif tutarını geçerli girin!');
+            }
+
+            const r = await fetch(`${API}/loan-requests/${currentLoanId}/action`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, counterAmount, adminMessage })
+            }).then(r => r.json());
+
+            if (r.success) {
+                alert(r.message);
+                closeModal('loanModal');
+                loadLoanRequests();
+            } else {
+                alert(r.error);
+            }
+        }
+
+        // ============ MODALS ============
+        function openDistributeModal() {
+            document.getElementById('distributeAmount').value = '';
+            document.getElementById('distributeReason').value = '';
+            document.getElementById('distributeModal').classList.add('active');
+        }
+
+        async function submitDistribute() {
+            const amount = parseFloat(document.getElementById('distributeAmount').value);
+            const reason = document.getElementById('distributeReason').value;
+            if (!amount || amount <= 0) return alert('Geçerli miktar girin!');
+
+            if (!confirm(`Tüm aktif oyunculara kişi başı ${fmtMoney(amount)} dağıtılacak. Emin misiniz?`)) return;
+
+            const r = await fetch(`${API}/treasury/distribute`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount, reason })
+            }).then(r => r.json());
+
+            if (r.success) {
+                alert(r.message);
+                closeModal('distributeModal');
+                loadStats(); // Refresh treasury
+            } else {
+                alert(r.error);
+            }
+        }
+
+        function openBalanceModal(playerId) {
+            currentPlayerId = playerId;
+            document.getElementById('balanceAmount').value = '';
+            document.getElementById('balanceModal').classList.add('active');
+        }
+
+        async function submitBalance() {
+            const amount = parseFloat(document.getElementById('balanceAmount').value);
+            const action = document.getElementById('balanceAction').value;
+            const customMessage = document.getElementById('balanceMessage').value;
+
+            if (isNaN(amount) || amount < 0) return alert('Geçerli bir miktar girin!');
+            if (action !== 'set' && amount === 0) return alert('Miktar 0 olamaz!');
+
+            const r = await fetch(`${API}/players/${currentPlayerId}/balance`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount, action, customMessage })
+            }).then(r => r.json());
+            if (r.success) { alert(r.message); closeModal('balanceModal'); loadPlayers(playerPage); }
+            else alert(r.error);
+        }
+
+        function openReplyModal(fbId) {
+            currentFeedbackId = fbId;
+            document.getElementById('replyMessage').value = '';
+            document.getElementById('replyModal').classList.add('active');
+        }
+
+        async function submitReply() {
+            const reply = document.getElementById('replyMessage').value;
+            const status = document.getElementById('replyStatus').value;
+            if (!reply.trim()) return alert('Yanıt gerekli!');
+            const r = await fetch(`${API}/feedbacks/${currentFeedbackId}/reply`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reply, status })
+            }).then(r => r.json());
+            if (r.success) { alert(r.message); closeModal('replyModal'); loadFeedbacks(fbPage); }
+            else alert(r.error);
+        }
+
+        function openNotifyModal(playerId) {
+            currentPlayerId = playerId;
+            document.getElementById('notifyTitle').value = '';
+            document.getElementById('notifyMessage').value = '';
+            document.getElementById('notifyModal').classList.add('active');
+        }
+
+        async function loadAllCarsForSelect() {
+            try {
+                const r = await fetch(`${API}/cars-list`).then(r => r.json());
+                if (!r.success) return;
+                const select = document.getElementById('giveCarSelect');
+                select.innerHTML = '<option value="">Araç Seçiniz...</option>' + r.data.map(c =>
+                    `<option value="${c.id}">${c.brand_name} ${c.model_name} (Sıfır Fiyatı: ${fmtMoney(c.price)})</option>`
+                ).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        loadAllCarsForSelect();
+
+        function openGiveCarModal(playerId) {
+            currentPlayerId = playerId;
+            document.getElementById('giveCarMessage').value = '';
+            document.getElementById('giveCarSelect').value = '';
+            document.getElementById('giveCarModal').classList.add('active');
+        }
+
+        async function submitGiveCar() {
+            const carId = document.getElementById('giveCarSelect').value;
+            const customMessage = document.getElementById('giveCarMessage').value;
+
+            if (!carId) return alert('Lütfen bir araç seçin');
+
+            const r = await fetch(`${API}/players/${currentPlayerId}/give-car`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ carId: carId, customMessage })
+            }).then(r => r.json());
+
+            if (r.success) { alert(r.message); closeModal('giveCarModal'); loadPlayers(playerPage); }
+            else alert(r.error);
+        }
+
+        function openGiveXpModal(playerId) {
+            currentPlayerId = playerId;
+            document.getElementById('giveXpAmount').value = '';
+            document.getElementById('giveXpMessage').value = '';
+            document.getElementById('giveXpModal').classList.add('active');
+        }
+
+        async function submitGiveXp() {
+            const amount = parseInt(document.getElementById('giveXpAmount').value);
+            const customMessage = document.getElementById('giveXpMessage').value;
+
+            if (!amount || amount <= 0) return alert('Geçerli XP miktarı girin');
+
+            const r = await fetch(`${API}/players/${currentPlayerId}/give-xp`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount, customMessage })
+            }).then(r => r.json());
+
+            if (r.success) { alert(r.message); closeModal('giveXpModal'); loadPlayers(playerPage); }
+            else alert(r.error);
+        }
+
+        async function submitNotify() {
+            const title = document.getElementById('notifyTitle').value;
+            const message = document.getElementById('notifyMessage').value;
+            if (!message.trim()) return alert('Mesaj gerekli!');
+            const r = await fetch(`${API}/notify/${currentPlayerId}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, message })
+            }).then(r => r.json());
+            if (r.success) { alert(r.message); closeModal('notifyModal'); }
+            else alert(r.error);
+        }
+
+        async function sendBroadcast() {
+            const title = document.getElementById('broadcastTitle').value;
+            const message = document.getElementById('broadcastMessage').value;
+            if (!message.trim()) return alert('Mesaj gerekli!');
+            if (!confirm(`Tüm oyunculara "${title || 'Duyuru'}" başlığıyla bildirim gönderilecek. Emin misiniz?`)) return;
+            const r = await fetch(`${API}/broadcast`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, message })
+            }).then(r => r.json());
+            if (r.success) {
+                alert(r.message);
+                document.getElementById('broadcastTitle').value = '';
+                document.getElementById('broadcastMessage').value = '';
+            } else alert(r.error);
+        }
+
+        async function toggleBan(playerId, ban) {
+            const action = ban ? 'banlamak' : 'banını kaldırmak';
+            if (!confirm(`Oyuncuyu ${action} istediğinize emin misiniz?`)) return;
+            const r = await fetch(`${API}/players/${playerId}/ban`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ban })
+            }).then(r => r.json());
+            if (r.success) { alert(r.message); loadPlayers(playerPage); }
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // ============ HELPERS ============
+        function fmtMoney(n) {
+            return Number(n || 0).toLocaleString('tr-TR') + '₺';
+        }
+
+        function esc(s) {
+            if (!s) return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderPagination(containerId, totalPages, currentPage, fnName) {
+            const c = document.getElementById(containerId);
+            if (totalPages <= 1) { c.innerHTML = ''; return; }
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="admin-btn sm ${i === currentPage ? 'primary' : 'ghost'}" onclick="${fnName}(${i})">${i}</button>`;
+            }
+            c.innerHTML = html;
+        }
+
+        // ============ INIT ============
+        checkAuth();
+
+        // ============ HACİZLİ ARAÇLAR (DEVLET OTOPARKI) ============
+        async function loadImpounded() {
+            try {
+                const r = await fetch(`${API}/impounded`, { headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
+                if (r.success) {
+                    const tbody = document.getElementById('impoundedTable');
+                    if (r.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Otoparkta hacizli araç yok.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = r.data.map(car => {
+                        return `
+                        <tr>
+                            <td>#${car.id}</td>
+                            <td style="font-weight:600; color:var(--accent);">${esc(car.owner_name)}</td>
+                            <td>
+                                <div>${car.brand_name} ${car.model_name} <small>(${car.year})</small></div>
+                                <small style="color:var(--text-muted);">${car.damage_status}</small>
+                            </td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <div style="flex:1; height:6px; background:var(--bg-input); border-radius:3px; overflow:hidden;">
+                                        <div style="width:${car.motor_health}%; height:100%; background:${car.motor_health < 50 ? 'var(--danger)' : 'var(--success)'};"></div>
+                                    </div>
+                                    <small>${car.motor_health}%</small>
+                                </div>
+                            </td>
+                            <td style="font-weight:700;">${fmtMoney(car.buy_price)}</td>
+                            <td style="font-size:12px; color:var(--text-sec);">${new Date(car.impounded_at).toLocaleString('tr-TR')}</td>
+                            <td>
+                                <button class="admin-btn sm success" onclick="returnImpounded(${car.id})"><i class="fa-solid fa-reply"></i> İade Et</button>
+                                <button class="admin-btn sm primary" onclick="sellImpounded(${car.id})"><i class="fa-solid fa-building-columns"></i> Hazineye Sat</button>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                } else alert('Hacizli araçlar alınamadı: ' + r.error);
+            } catch (err) { alert('Bağlantı hatası!'); }
+        }
+
+        async function returnImpounded(id) {
+            if (!confirm('Aracı sahibine vergisiz olarak iade ediyorsunuz. Emin misiniz?')) return;
+            try {
+                const r = await fetch(`${API}/impounded/${id}/return`, { method: 'POST', headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
+                if (r.success) { alert(r.message); loadImpounded(); }
+                else alert('Hata: ' + r.error);
+            } catch (err) { alert('Bağlantı hatası!'); }
+        }
+
+        async function sellImpounded(id) {
+            if (!confirm('Bu araç icra yoluyla satılıp geliri Devlet Hazinesine aktarılacaktır. Onaylıyor musunuz?')) return;
+            try {
+                const r = await fetch(`${API}/impounded/${id}/sell`, { method: 'POST', headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
+                if (r.success) { alert(r.message); loadImpounded(); }
+                else alert('Hata: ' + r.error);
+            } catch (err) { alert('Bağlantı hatası!'); }
+        }
+
+
+        // ============ ORGANİZATÖR & YARIŞLAR ============
+        async function loadRaces() {
+            try {
+                const r = await fetch(`${API}/races`, { headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
+                if (r.success) {
+                    document.getElementById('totalRaces').textContent = r.data.length;
+                    const tbody = document.getElementById('racesTable');
+
+                    if (r.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Henüz yarış yok</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = r.data.map(race => {
+                        let statusBadge = '<span class="badge badge-purple">Bekliyor</span>';
+                        if (race.status === 'completed') statusBadge = '<span class="badge badge-green">Tamamlandı</span>';
+                        if (race.status === 'cancelled') statusBadge = '<span class="badge badge-red">İptal</span>';
+
+                        return `
+                        <tr>
+                            <td>
+                                <strong>${race.name}</strong><br>
+                                <small style="color:var(--text-muted);">${new Date(race.starts_at).toLocaleString('tr-TR')}</small>
+                            </td>
+                            <td>${Number(race.entry_fee).toLocaleString('tr-TR')}₺<br><small>${race.max_participants} Kişi</small></td>
+                            <td>${statusBadge}</td>
+                        </tr>`;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function createRace() {
+            const name = document.getElementById('raceName').value;
+            const description = document.getElementById('raceDesc').value;
+            const entryFee = document.getElementById('raceFee').value;
+            const maxParticipants = document.getElementById('raceMaxParticipants').value;
+            const startsInMinutes = document.getElementById('raceStartsIn').value;
+
+            if (!name) return alert('Yarış adı zorunludur!');
+
+            try {
+                const r = await fetch(`${API}/races`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, entryFee, maxParticipants, startsInMinutes })
+                }).then(res => res.json());
+
+                if (r.success) {
+                    alert(r.message);
+                    loadRaces();
+                } else {
+                    alert('Hata: ' + r.error);
+                }
+            } catch (err) {
+                alert('Bağlantı hatası!');
+            }
+        }
+
+        // ============ MARKET TRENDLERİ ============
+        async function loadActiveTrendAndList() {
+            try {
+                // Fetch Available Trends
+                const trendsRes = await fetch(`${API}/trends`, { headers: { 'Content-Type': 'application/json' } }).then(r => r.json());
+                if (trendsRes.success) {
+                    const select = document.getElementById('manualTrendSelect');
+                    select.innerHTML = '<option value="">Seçiniz...</option>' + trendsRes.data.map((t, idx) => `<option value="${idx}">${t.name} (${t.type})</option>`).join('');
+                }
+
+                // Fetch Active Trend
+                const activeRes = await fetch(`${API}/trends/active`, { headers: { 'Content-Type': 'application/json' } }).then(r => r.json());
+                const activeInfo = document.getElementById('activeTrendInfo');
+                if (activeRes.success && activeRes.data) {
+                    const t = activeRes.data;
+                    const expires = new Date(t.expires_at);
+                    const now = new Date();
+                    const hoursLeft = Math.max(0, Math.floor((expires - now) / (1000 * 60 * 60)));
+
+                    activeInfo.innerHTML = `
+                        <div style="font-weight:700; color:var(--text); margin-bottom:4px">${t.name}</div>
+                        <div style="font-size:12px; color:var(--text-sec);">${t.description}</div>
+                        <div style="font-size:12px; margin-top:6px; color:var(--warning);"><i class="fa-solid fa-clock"></i> ${hoursLeft > 0 ? hoursLeft + ' saat kaldı' : 'Sona Eriyor...'}</div>
+                    `;
+                } else {
+                    activeInfo.innerHTML = '<div style="color:var(--text-muted)">Aktif bir trend yok. Piyasa normal durumda.</div>';
+                }
+
+                // Fetch Auto Trends Setting
+                const settingsRes = await fetch(`${API}/settings/trends`).then(r => r.json());
+                if (settingsRes.success) {
+                    document.getElementById('autoTrendsToggle').checked = settingsRes.enabled;
+                }
+            } catch (err) {
+                console.error("Trend modül yükleme hatası:", err);
+            }
+        }
+
+        async function toggleAutoTrends() {
+            const enabled = document.getElementById('autoTrendsToggle').checked;
+            try {
+                const r = await fetch(`${API}/settings/trends`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                }).then(res => res.json());
+                if (!r.success) {
+                    alert('Hata: ' + r.error);
+                    document.getElementById('autoTrendsToggle').checked = !enabled;
+                }
+            } catch (err) {
+                alert('Bağlantı hatası!');
+                document.getElementById('autoTrendsToggle').checked = !enabled;
+            }
+        }
+
+        async function startTrend() {
+            const trendId = document.getElementById('manualTrendSelect').value;
+            const duration = document.getElementById('manualTrendDuration').value;
+            if (trendId === '') return alert('Lütfen bir trend seçin!');
+
+            try {
+                const r = await fetch(`${API}/trends/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trendId, duration })
+                }).then(res => res.json());
+
+                if (r.success) {
+                    alert('Trend Başlatıldı: ' + r.message);
+                    loadActiveTrendAndList();
+                } else {
+                    alert('Hata: ' + r.error);
+                }
+            } catch (err) {
+                alert('Bağlantı hatası!');
+            }
+        }
+
+        async function stopTrend() {
+            try {
+                const r = await fetch(`${API}/trends/stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                }).then(res => res.json());
+
+                if (r.success) {
+                    alert(r.message);
+                    loadActiveTrendAndList();
+                } else {
+                    alert('Hata: ' + r.error);
+                }
+            } catch (err) {
+                alert('Bağlantı hatası!');
+            }
+        }
+
+        loadActiveTrendAndList();
+
+        // ============ BANK SETTINGS ============
+        async function loadBankSettings() {
+            try {
+                const r = await fetch(`${API}/settings`).then(r => r.json());
+                if (r.success && r.data) {
+                    document.getElementById('bankInterestModifier').value = r.data.bankInterestModifier;
+                }
+            } catch (e) { }
+        }
+
+        async function saveBankSettings() {
+            const val = document.getElementById('bankInterestModifier').value;
+            if (val === '') return alert('Bir değer girin!');
+            try {
+                const r = await fetch(`${API}/settings`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bankInterestModifier: val })
+                }).then(r => r.json());
+                if (r.success) alert(r.message);
+                else alert(r.error);
+            } catch (e) { alert('Bağlantı hatası'); }
+        }
+
+        // ============ EVENTS ============
+        async function runEvent(type) {
+            let amount, endpoint, confirmMsg;
+            if (type === 'raffle') {
+                amount = document.getElementById('raffleAmount').value;
+                endpoint = '/events/raffle';
+                confirmMsg = `Rastgele bir oyuncuya ${fmtMoney(amount)} çekiliş ödülü verilecek. Emin misiniz?`;
+            } else if (type === 'top-seller') {
+                amount = document.getElementById('topSellerAmount').value;
+                endpoint = '/events/top-seller';
+                confirmMsg = `Şu anki "Kar" tablosu (Total Profit) en yüksek olan oyuncuya ${fmtMoney(amount)} ödül dağıtılacak. Emin misiniz?`;
+            }
+
+            if (!amount || amount <= 0) return alert('Geçerli miktar girin!');
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                const r = await fetch(`${API}${endpoint}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount })
+                }).then(r => r.json());
+
+                if (r.success) {
+                    alert(r.message);
+                    loadStats(); // Update possible treasury deducts
+                } else alert('Hata: ' + r.error);
+            } catch (err) { alert('Bağlantı hatası!'); }
+        }
+
+        // INIT
+        checkAuth();
+    </script>
+</body>
+
+</html>

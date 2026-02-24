@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>OtoGaleri Tycoon TR - Araç Galericisi Simülasyon Oyunu | Araç Al-Sat</title>
+    <meta name="description"
+        content="Kendi araç galerinizi açın! Araç alıp satın, ekspertiz yapın, tamir edin, boyayın ve Türkiye'nin en başarılı galericisi olun. Ücretsiz online simülasyon oyunu.">
+    <meta name="keywords"
+        content="otogaleri tycoon, araç galericisi oyunu, araba alım satım, simülasyon oyunu, online oyun, araç ticaret">
+    <meta name="author" content="OtoGaleri Tycoon TR">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://otogaleritycoon.com.tr/">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/img/logo2.png">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://otogaleritycoon.com.tr/">
+    <meta property="og:title" content="OtoGaleri Tycoon TR - Araç Galericisi Simülasyon Oyunu">
+    <meta property="og:description"
+        content="Kendi araç galerinizi açın! Araç alıp satın, ekspertiz yapın ve Türkiye'nin en başarılı galericisi olun.">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:site_name" content="OtoGaleri Tycoon TR">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="OtoGaleri Tycoon TR - Araç Galericisi Simülasyon Oyunu">
+    <meta name="twitter:description"
+        content="Kendi araç galerinizi açın! Araç alıp satın, ekspertiz yapın ve Türkiye'nin en başarılı galericisi olun.">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "OtoGaleri Tycoon TR",
+        "url": "https://otogaleritycoon.com.tr",
+        "description": "Araç galericisi simülasyon oyunu. Araç alıp satın, ekspertiz yapın, tamir edin ve en başarılı galericisi olun.",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "TRY"
+        },
+        "inLanguage": "tr"
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous">
+
+    <!-- MODAL: Join Race -->
+    <div class="modal" id="joinRaceModal" style="display:none">
+        <div class="modal-overlay" onclick="closeModal('joinRaceModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header"
+                style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:18px; margin:0;"><i class="fa-solid fa-flag-checkered"></i> Yarışa Katıl</h2>
+                <button class="btn btn-sm btn-danger" onclick="closeJoinRaceModal()">X</button>
+            </div>
+            <div style="padding-top:10px">
+                <p style="margin-bottom:15px; color:var(--text-muted); font-size:14px;">Bu yarışa katılacak aracınızı
+                    seçin. Unutmayın, aracınızın gücü (HP/Tork) kazanma ihtimalinizi belirler ancak yarışlar <strong>her
+                        zaman risklidir</strong> (Araç hasar görebilir veya kaza yapabilir).</p>
+                <div class="form-group">
+                    <label>Yarış Aracı Seçin</label>
+                    <select id="joinRaceCarSelect"
+                        style="width:100%; padding:10px; background:var(--bg-input); color:white; border:1px solid var(--border); border-radius:4px;">
+                        <option value="">Araç Yükleniyor...</option>
+                    </select>
+                </div>
+                <input type="hidden" id="joinRaceId">
+                <div id="joinRaceFeeInfo" style="margin-top:15px; font-size:14px; color:var(--text-secondary);"></div>
+                <div class="modal-actions" style="margin-top:20px;">
+                    <button class="btn ghost" onclick="closeJoinRaceModal()">İptal</button>
+                    <button id="joinRaceBtn" class="btn primary" onclick="submitJoinRace()"><i
+                            class="fa-solid fa-flag-checkered"></i> Kaydı Tamamla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"
+        onerror="console.warn('Chart.js CDN yüklenemedi. Grafik özellikleri devre dışı.')"></script>
+
+</head>
+
+<body>
+    <!-- ======== GLOBAL LOADER ======== -->
+    <div class="global-loader" id="globalLoader">
+        <img src="/img/logo2.png" alt="Yükleniyor..." class="loader-logo">
+        <div class="loader-text">OtoGaleri Tycoon Yükleniyor...</div>
+    </div>
+
+    <!-- ======== LOGIN/REGISTER SCREEN ======== -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-bg">
+            <div class="auth-particles">
+                <div class="auth-particle"></div>
+                <div class="auth-particle"></div>
+                <div class="auth-particle"></div>
+                <div class="auth-particle"></div>
+                <div class="auth-particle"></div>
+                <div class="auth-particle"></div>
+            </div>
+        </div>
+
+        <div class="auth-container">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <img src="/img/logo2.png" alt="OtoGaleri Tycoon TR" class="auth-logo-img">
+            </div>
+
+            <!-- Başlık -->
+            <h1 class="auth-title">OtoGaleri Tycoon TR</h1>
+            <p class="auth-subtitle"><i class="fa-solid fa-car"></i> Türkiye'nin en büyük galericisi ol!</p>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')"><i
+                        class="fa-solid fa-key"></i> Giriş Yap</button>
+                <button class="auth-tab" id="registerTab" onclick="switchAuthTab('register')"><i
+                        class="fa-solid fa-user-plus"></i> Kayıt Ol</button>
+            </div>
+
+            <!-- ===== GİRİŞ FORMU ===== -->
+            <form class="auth-form" id="loginForm" onsubmit="return handleLogin(event)">
+                <div class="auth-input-wrapper">
+                    <span class="auth-input-icon"><i class="fa-solid fa-user"></i></span>
+                    <input type="text" class="auth-input" id="loginUsername" placeholder="Kullanıcı adınız" required
+                        autocomplete="username">
+                </div>
+                <div class="auth-input-wrapper">
+                    <span class="auth-input-icon"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" class="auth-input auth-input-pw" id="loginPassword" placeholder="Şifreniz"
+                        required autocomplete="current-password">
+                    <button type="button" class="auth-pw-toggle" onclick="togglePwVisibility('loginPassword', this)"
+                        title="Şifreyi göster/gizle"><i class="fa-solid fa-eye"></i></button>
+                </div>
+                <button type="submit" class="auth-btn" id="loginBtn">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Giriş Yap
+                </button>
+            </form>
+
+            <!-- ===== KAYIT FORMU ===== -->
+            <form class="auth-form" id="registerForm" style="display:none" onsubmit="return handleRegister(event)">
+                <div class="auth-input-wrapper">
+                    <span class="auth-input-icon"><i class="fa-solid fa-user"></i></span>
+                    <input type="text" class="auth-input" id="regUsername" placeholder="Kullanıcı adı (3-30 karakter)"
+                        required minlength="3" maxlength="30" autocomplete="username"
+                        oninput="validateRegUsername(this)">
+                </div>
+                <div class="auth-input-wrapper">
+                    <span class="auth-input-icon"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" class="auth-input auth-input-pw" id="regPassword"
+                        placeholder="Şifre (min 4 karakter)" required minlength="4" autocomplete="new-password"
+                        oninput="updatePwStrength(this.value)">
+                    <button type="button" class="auth-pw-toggle" onclick="togglePwVisibility('regPassword', this)"
+                        title="Şifreyi göster/gizle"><i class="fa-solid fa-eye"></i></button>
+                </div>
+                <!-- Şifre gücü göstergesi -->
+                <div>
+                    <div class="pw-strength">
+                        <div class="pw-strength-fill" id="pwStrengthFill"></div>
+                    </div>
+                    <div class="pw-strength-text" id="pwStrengthText">Şifre gücü: —</div>
+                </div>
+
+                <!-- TOS -->
+                <label class="tos-checkbox">
+                    <input type="checkbox" id="tosCheckbox">
+                    <span>
+                        <a href="#" onclick="event.preventDefault(); openTosModal()">Kullanıcı Sözleşmesi</a>'ni
+                        okudum ve kabul ediyorum.
+                    </span>
+                </label>
+
+                <button type="submit" class="auth-btn" id="registerBtn">
+                    <i class="fa-solid fa-rocket"></i>
+                    Hesap Oluştur &amp; Oyna
+                </button>
+            </form>
+
+            <!-- Hata mesajı -->
+            <p class="auth-error" id="authError"></p>
+
+            <!-- Alt bilgi rozetleri -->
+            <div class="auth-info-badges">
+                <div class="auth-badge">
+                    <span class="auth-badge-icon"><i class="fa-solid fa-gift"></i></span>
+                    <span>Tamamen Ücretsiz</span>
+                </div>
+                <div class="auth-badge">
+                    <span class="auth-badge-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                    <span>Güvenli Kayıt</span>
+                </div>
+                <div class="auth-badge">
+                    <span class="auth-badge-icon"><i class="fa-solid fa-coins"></i></span>
+                    <span>50.000₺ Başlangıç</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== TOP BAR ======== -->
+    <div class="top-bar">
+        <div class="logo" onclick="navigateTo('home')">
+            <img src="/img/logo1.png" alt="GaleriSim Logo" class="logo-img"
+                style="height: 32px; width: auto; margin-right: 10px;">
+            <span class="logo-text">GaleriSim</span>
+        </div>
+
+        <div class="player-stats">
+            <div class="stat-item" id="balanceStat">
+                <span class="stat-icon"><i class="fa-solid fa-coins"></i></span>
+                <span class="stat-value" id="playerBalance">50.000₺</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon"><i class="fa-solid fa-star"></i></span>
+                <span class="stat-value" id="playerLevel">Lv 1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon"><i class="fa-solid fa-trophy"></i></span>
+                <span class="stat-value" id="playerPrestige">0</span>
+            </div>
+
+            <!-- Bildirim Butonu -->
+            <div class="notification-wrapper">
+                <button class="notification-btn" id="notifBtn" onclick="toggleNotificationsPage()" title="Bildirimler">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+                </button>
+            </div>
+
+            <!-- Tema Toggle -->
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Tema değiştir">
+                <span id="themeIcon"><i class="fa-solid fa-moon"></i></span>
+            </button>
+
+            <button class="profile-btn" onclick="navigateTo('profile')" id="topProfileBtn">
+                <img src="/img/logo2.png" id="topAvatarImg" class="avatar-sm">
+            </button>
+        </div>
+    </div>
+
+    <!-- ======== SIDEBAR (DESKTOP) ======== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-section-title">ANA MENÜ</div>
+        <button class="sidebar-btn active" data-page="home" onclick="navigateTo('home')">
+            <span class="sidebar-icon"><i class="fa-solid fa-house"></i></span><span class="sidebar-label">Ana
+                Sayfa</span>
+        </button>
+        <button class="sidebar-btn" data-page="explore" onclick="navigateTo('explore')">
+            <span class="sidebar-icon"><i class="fa-solid fa-magnifying-glass"></i></span><span
+                class="sidebar-label">Keşfet</span>
+        </button>
+        <button class="sidebar-btn" data-page="categories" onclick="navigateTo('categories')">
+            <span class="sidebar-icon"><i class="fa-solid fa-folder"></i></span><span
+                class="sidebar-label">Kategoriler</span>
+        </button>
+        <button class="sidebar-btn" data-page="upgrades" onclick="navigateTo('upgrades')">
+            <span class="sidebar-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span><span
+                class="sidebar-label">Geliştirmeler</span>
+        </button>
+        <button class="sidebar-btn" data-page="leaderboard" onclick="navigateTo('leaderboard')">
+            <span class="sidebar-icon"><i class="fa-solid fa-trophy"></i></span><span
+                class="sidebar-label">Liderler</span>
+        </button>
+        <button class="sidebar-btn" data-page="mycars" onclick="navigateTo('mycars')">
+            <span class="sidebar-icon"><i class="fa-solid fa-car"></i></span><span class="sidebar-label">Galerim</span>
+        </button>
+        <button class="sidebar-btn" data-page="listings" onclick="navigateTo('listings')">
+            <span class="sidebar-icon"><i class="fa-solid fa-list-check"></i></span><span
+                class="sidebar-label">İlanlarım</span>
+        </button>
+        <button class="sidebar-btn" data-page="favorites" onclick="navigateTo('favorites')">
+            <span class="sidebar-icon"><i class="fa-solid fa-heart"></i></span><span
+                class="sidebar-label">Favoriler</span>
+        </button>
+        <button class="sidebar-btn" data-page="feedback" onclick="navigateTo('feedback')">
+            <span class="sidebar-icon"><i class="fa-solid fa-comment"></i></span><span class="sidebar-label">Geri
+                Bildirim</span>
+        </button>
+
+
+
+
+        <div class="sidebar-section-title">FİNANS</div>
+        <button class="sidebar-btn" data-page="bank" onclick="navigateTo('bank')">
+            <span class="sidebar-icon"><i class="fa-solid fa-building-columns"></i></span><span
+                class="sidebar-label">Banka</span>
+        </button>
+        <button class="sidebar-btn" data-page="profitchart" onclick="navigateTo('profitchart')">
+            <span class="sidebar-icon"><i class="fa-solid fa-chart-line"></i></span><span
+                class="sidebar-label">Kâr/Zarar</span>
+        </button>
+
+        <div class="sidebar-section-title">ÜRETİM</div>
+        <button class="sidebar-btn" data-page="factory" onclick="navigateTo('factory')">
+            <span class="sidebar-icon"><i class="fa-solid fa-industry"></i></span><span
+                class="sidebar-label">Fabrika</span>
+        </button>
+        <button class="sidebar-btn" data-page="custom" onclick="navigateTo('custom')">
+            <span class="sidebar-icon"><i class="fa-solid fa-palette"></i></span><span class="sidebar-label">Özel
+                Araç</span>
+        </button>
+
+        <div class="sidebar-section-title">DİĞER</div>
+        <button class="sidebar-btn" data-page="illegal" onclick="navigateTo('illegal')">
+            <span class="sidebar-icon"><i class="fa-solid fa-triangle-exclamation"></i></span><span
+                class="sidebar-label">İllegal Garaj</span>
+        </button>
+        <button class="sidebar-btn" data-page="junkyard" onclick="navigateTo('junkyard')">
+            <span class="sidebar-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span><span
+                class="sidebar-label">Hurdalık</span>
+        </button>
+        <button class="sidebar-btn" data-page="races" onclick="navigateTo('races')">
+            <span class="sidebar-icon"><i class="fa-solid fa-flag-checkered"></i></span><span
+                class="sidebar-label">Yarışlar</span>
+        </button>
+
+        <button class="sidebar-btn" data-page="achievements" onclick="navigateTo('achievements')">
+            <span class="sidebar-icon"><i class="fa-solid fa-medal"></i></span><span
+                class="sidebar-label">Başarımlar</span>
+        </button>
+        <button class="sidebar-btn" data-page="bilgibankasi" onclick="navigateTo('bilgibankasi')">
+            <span class="sidebar-icon"><i class="fa-solid fa-book-open"></i></span><span class="sidebar-label">Bilgi
+                Bankası</span>
+        </button>
+
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Daralt/Genişlet">
+            <span id="sidebarToggleIcon"><i class="fa-solid fa-chevron-left"></i></span>
+        </button>
+    </nav>
+
+    <!-- ======== XP BAR ======== -->
+    <div class="xp-bar-container">
+        <div class="xp-bar" id="xpBar" style="width: 0%"></div>
+    </div>
+    <span class="xp-text" id="xpText">0 / 100 XP</span>
+
+    <!-- ======== HACIZ UYARISI ======== -->
+    <div class="seizure-banner" id="seizureBanner" style="display:none">
+        ⚠️ HACİZ! Araç alım-satımınız durduruldu. Kredi borcunuzu ödeyin!
+    </div>
+
+    <!-- ======== MAIN CONTENT ======== -->
+    <main class="main-content">
+
+
+
+        <!-- ANA SAYFA (DASHBOARD) -->
+        <div class="page active" id="homePage">
+            <div class="dashboard-hero">
+                <div class="hero-info">
+                    <h1>Hoş Geldin, <span id="heroUsername" class="text-accent">...</span></h1>
+                    <p class="hero-subtitle">Galeri İmparatorluğun Büyüyor! <i class="fa-solid fa-rocket"></i></p>
+                </div>
+                <div class="hero-timer">
+                    <div class="timer-label">Yeni Gün Başlıyor</div>
+                    <div class="timer-value" id="nextDayTimer">00:00</div>
+                    <div class="timer-progress">
+                        <div id="timerProgressBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Ekonomi Özeti -->
+                <div class="dashboard-card stat-card eco-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-coins"></i> Ekonomi Özeti</h3>
+                        <span class="card-icon"><i class="fa-solid fa-chart-simple"></i></span>
+                    </div>
+                    <div class="stat-rows">
+                        <div class="stat-row">
+                            <span>Bakiye:</span>
+                            <strong id="dashBalance">...</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Toplam Kâr:</span>
+                            <strong id="dashProfit" class="text-success">...</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Satış Sayısı:</span>
+                            <strong id="dashSales">...</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liderlik Top 3 -->
+                <div class="dashboard-card leaderboard-mini">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-trophy"></i> En İyi Oyuncular</h3>
+                        <button class="btn btn-sm btn-ghost" onclick="navigateTo('leaderboard')">Tümü</button>
+                    </div>
+                    <div id="dashTop3" class="mini-list">
+                        <div class="loading-small">Yükleniyor...</div>
+                    </div>
+                </div>
+
+                <!-- Mevcut Piyasa Trendi -->
+                <div class="dashboard-card trend-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-bullhorn"></i> Piyasa Durumu</h3>
+                        <span class="card-icon"><i class="fa-solid fa-bolt"></i></span>
+                    </div>
+                    <div id="dashTrend" class="trend-info">
+                        <strong>Normal</strong>
+                        <p>Piyasada her şey yolunda.</p>
+                    </div>
+                </div>
+
+                <!-- Son İşlemler -->
+                <div class="dashboard-card transactions-mini">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-scroll"></i> Son İşlemler</h3>
+                        <button class="btn btn-sm btn-ghost" onclick="navigateTo('profile')">Geçmiş</button>
+                    </div>
+                    <div id="dashTransactions" class="mini-list">
+                        <div class="loading-small">Yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RİSK BAR -->
+        <div class="risk-bar-container" id="riskBarContainer" style="display:none">
+            <span class="risk-label"><i class="fa-solid fa-triangle-exclamation"></i> Risk:</span>
+            <div class="risk-bar-track">
+                <div class="risk-bar" id="riskBar" style="width: 0%"></div>
+            </div>
+            <span class="risk-text" id="riskText">%0</span>
+        </div>
+
+        <!-- BİLGİ BANKASI -->
+        <div class="page" id="bilgibankasiPage">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-book-open"></i> Bilgi Bankası & Rehber</h2>
+                <p>Oyun ekonomisi, ticaret ve garaj sırları.</p>
+            </div>
+            <div id="bilgibankasiContent" style="padding: 20px;">
+                <div class="admin-grid" style="display:grid; grid-template-columns: 1fr; gap:20px;">
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-scale-balanced"></i> Ticaret ve Ekonomi</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            <strong>Satın Alma & İlan:</strong> Araçları Pazar'dan (Keşfet) satın alıp İlanlar
+                            sekmesinden satışa koyabilirsiniz. İlan fiyatını piyasanın %15-35 üstünde tutarsanız kâr
+                            marjınız artar ancak NPC teklifleri beklemeniz gerekebilir. <span
+                                style="color:var(--gold)">Unutmayın, ilanlarınıza her 30 saniyede bir (her oyun gününde)
+                                yeni NPC teklifleri gelir!</span><br><br>
+                            <strong>Expertiz (Ekspertiz):</strong> İkinci el araç alırken mutlaka Inspect (Expertiz)
+                            yaptırın. Hasar durumuna göre fiyatta pazarlık edebilir, hurda araçların maliyetini önceden
+                            kestirebilirsiniz.<br><br>
+                            <strong>Piyasa Trendleri:</strong> Otomobil piyasası hareketlidir. "Çip Krizi" çıktığında
+                            fiyatlar tavan yaparken, "Büyük Çöküş" döneminde düşer. Fırsatları değerlendirmek için
+                            bildirmlere göz atın!
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-building-columns"></i> Bankacılık Sistemi</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            <strong>Krediler:</strong> Nakit sıkıntınız olduğunda veya iyi bir araç fırsatı denk
+                            geldiğinde Banka'dan kredi çekebilirsiniz. Ancak çektiğiniz kredi için her oyun gününde
+                            (veya reelde her ödeme döngüsünde) banka faiz kesintisi yapacaktır.<br><br>
+                            <strong>Araç Taksitleri:</strong> Araç satışlarında 3, 6, 9 veya 12 Taksit seçeneklerini
+                            kullanabilirsiniz. Taksitli satışlarda ek faiz (örneğin %30) sayesinde aracınızı daha yüksek
+                            fiyata satmış olursunuz. Aylık ödemeleriniz doğrudan bakiyenize oyun döngüsü ile
+                            yatar.<br><br>
+                            <strong>Haciz:</strong> Borçlarınızı 3-5 günden fazla geciktirirseniz, sistem araçlarınıza
+                            otomatik haciz koyabilir ve ucuz fiyata galerinizden çekebilir.
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-screwdriver-wrench"></i> Illegal Garaj & Hurdalık</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            <strong>Illegal Modifikasyonlar:</strong> İllegal Garaj'da araçlarınıza Nitro, Stage 3
+                            Yazılım veya Hayalet Plaka donanımı kurabilirsiniz. Bu işlemler aracınızın prestijini ve
+                            HP'sini artırır ancak Polis / Risk metre dolduğunda tutuklanma riskiniz vardır.<br><br>
+                            <strong>Hurdalık ve Parçalar:</strong> Hurdalık'tan "Pert" durumlu ucuza araç çekip
+                            onarabilirsiniz. Ya "Orijinal" parça (pahalı), ya "Yan Sanayi" ya da şans işi "Çıkma" parça
+                            kullanabilirsiniz. Boya ve Temizlik (Garage Wash) ile aracınızın piyasa değerini artırın.
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-flag-checkered"></i> İllegal Yarışlar</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            <strong>Yarış Mekanikleri:</strong> Galeride "Kişisel Aracım" (Personal) olarak atadığınız
+                            yüksek performanslı arabalarla yeraltı yarışlarına katılabilirsiniz.<br><br>
+                            Aracınızın Beygir Gücü (HP) ve Torku, yarıştaki başarı oranınızı %90'a kadar etkiler. Yüksek
+                            riskli yarışlar büyük nakit ve prestij kazandırır ancak kaza ihtimalini de göze almalısınız.
+                            Kaza yaptığınız takdirde araç ağır hasar alabilir!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KEŞFET -->
+        <div class="page" id="explorePage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-magnifying-glass"></i> Keşfet</h1>
+                <p>Piyasadaki araçları incele, satın al veya favorilere ekle</p>
+            </div>
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <select class="filter-select" id="filterBrand">
+                        <option value="">Tüm Markalar</option>
+                    </select>
+                    <select class="filter-select" id="filterModel" disabled>
+                        <option value="">Tüm Modeller</option>
+                    </select>
+                    <select class="filter-select" id="filterDamage">
+                        <option value="">Tüm Hasar</option>
+                        <option>Hasarsız</option>
+                        <option>Çizik</option>
+                        <option>Boyalı</option>
+                        <option>Değişen</option>
+                        <option>Hasarlı</option>
+                    </select>
+                    <select class="filter-select" id="filterSeller">
+                        <option value="">Tüm Satıcılar</option>
+                        <option>Sahibinden</option>
+                        <option>Galeri</option>
+                        <option>Yetkili Bayi</option>
+                    </select>
+                    <select class="filter-select" id="filterFuel">
+                        <option value="">Tüm Yakıt</option>
+                        <option>Benzin</option>
+                        <option>Dizel</option>
+                        <option>LPG</option>
+                        <option>Hibrit</option>
+                        <option>Elektrik</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input class="filter-input" id="filterPriceMin" type="number" placeholder="Min ₺">
+                    <input class="filter-input" id="filterPriceMax" type="number" placeholder="Max ₺">
+                    <input class="filter-input" id="filterYearMin" type="number" placeholder="Min Yıl">
+                    <input class="filter-input" id="filterYearMax" type="number" placeholder="Max Yıl">
+                    <select class="filter-select" id="filterSort">
+                        <option value="created_at-desc">Yeniden Eskiye</option>
+                        <option value="price-asc" selected>Fiyat: Düşükten Yükseğe</option>
+                        <option value="price-desc">Fiyat: Yüksekten Düşüğe</option>
+                        <option value="year-desc">Yıl: Yeniye Göre</option>
+                        <option value="year-asc">Yıl: Eskiye Göre</option>
+                        <option value="km-asc">KM: Düşüğe Göre</option>
+                        <option value="km-desc">KM: Yükseğe Göre</option>
+                    </select>
+                    <button class="btn btn-primary" id="filterApply"><i class="fa-solid fa-magnifying-glass"></i>
+                        Filtrele</button>
+                    <button class="btn btn-ghost" id="filterClear">✕ Temizle</button>
+                </div>
+            </div>
+            <div class="cars-grid" id="carsGrid"></div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <!-- KATEGORİLER -->
+        <div class="page" id="categoriesPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-folder"></i> Kategoriler</h1>
+                <p>Markalara göre araç ara</p>
+            </div>
+            <div id="brandsSection">
+                <div class="brands-grid" id="brandsGrid"></div>
+            </div>
+            <div id="modelsSection" style="display:none">
+                <button class="btn btn-ghost back-btn" id="backToBrands">← Geri</button>
+                <h2 id="selectedBrandTitle"></h2>
+                <div class="models-grid" id="modelsGrid"></div>
+            </div>
+            <div id="modelCarsSection" style="display:none">
+                <button class="btn btn-ghost back-btn" id="backToModels">← Geri</button>
+                <h2 id="selectedModelTitle"></h2>
+                <div class="cars-grid" id="modelCarsGrid"></div>
+            </div>
+        </div>
+
+        <!-- GALERİM -->
+        <div class="page" id="mycarsPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-car"></i> Galerim</h1>
+                <p>Sahip olduğun araçları yönet</p>
+            </div>
+            <div class="gallery-info" id="galleryInfo"></div>
+            <div class="cars-grid" id="myCarsGrid"></div>
+        </div>
+
+        <!-- İLANLAR -->
+        <div class="page" id="listingsPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-list-check"></i> Aktif İlanlarım</h1>
+                <p>Satışa koyduğun araçları takip et</p>
+            </div>
+            <div class="listings-container" id="listingsContainer"></div>
+        </div>
+
+        <!-- FAVORİLER -->
+        <div class="page" id="favoritesPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-heart"></i> Favorilerim</h1>
+                <p>Beğendiğin araçları burada bul</p>
+            </div>
+            <div class="cars-grid" id="favoritesGrid"></div>
+        </div>
+
+        <!-- PERSONEL YÖNETİMİ -->
+        <div class="page" id="managementPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-users-gear"></i> Personel Yönetimi</h1>
+                <p>Ekibini kur ve galerini daha verimli yönet</p>
+            </div>
+            <div id="managementContent"></div>
+        </div>
+
+        <!-- GELİŞTİRMELER -->
+        <div class="page" id="upgradesPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-wand-magic-sparkles"></i> Galeri Geliştirme</h1>
+                <p>Hizmet kalitesini ve prestijini artır</p>
+            </div>
+            <div id="upgradesContent"></div>
+        </div>
+
+        <!-- BANKA/KREDİ -->
+        <div class="page" id="bankPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-building-columns"></i> Banka</h1>
+                <p>Kredi çek, taksitlerini öde</p>
+            </div>
+            <div id="bankContent"></div>
+        </div>
+
+        <!-- KÂR/ZARAR -->
+        <div class="page" id="profitchartPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-chart-line"></i> Kâr / Zarar Analizi</h1>
+                <p>Mali durumunu takip et</p>
+            </div>
+            <div id="profitChartContent"></div>
+        </div>
+
+        <!-- FABRİKA -->
+        <div class="page" id="factoryPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-industry"></i> Fabrika</h1>
+                <p>Toptan sıfır araç al</p>
+            </div>
+            <div id="factoryContent"></div>
+        </div>
+
+        <!-- ÖZEL ARAÇ -->
+        <div class="page" id="customPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-palette"></i> Özel Araç Oluştur</h1>
+                <p>Hayalindeki aracı tasarla</p>
+            </div>
+            <div id="customContent"></div>
+        </div>
+
+        <!-- PROFİL -->
+        <div class="page" id="profilePage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-user"></i> Profil</h1>
+                <p>Oyuncu istatistiklerin ve kimliğin</p>
+            </div>
+
+            <div class="profile-container">
+                <div class="profile-avatar-section">
+                    <img src="/img/logo2.png" id="profileAvatarImg" class="avatar-lg">
+                    <div class="avatar-grid">
+                        <div class="avatar-item" onclick="selectAvatar('/img/logo1.png')"><img src="/img/logo1.png">
+                        </div>
+                        <div class="avatar-item" onclick="selectAvatar('/img/logo2.png')"><img src="/img/logo2.png">
+                        </div>
+                        <div class="avatar-item" onclick="selectAvatar('/img/logo3.png')"><img src="/img/logo3.png">
+                        </div>
+                        <div class="avatar-item" onclick="selectAvatar('/img/logo4.png')"><img src="/img/logo4.png">
+                        </div>
+                        <div class="avatar-item" onclick="selectAvatar('/img/logo5.png')"><img src="/img/logo5.png">
+                        </div>
+                    </div>
+                </div>
+                <div id="profileContent"></div>
+            </div>
+        </div>
+
+        <!-- İLLEGAL GARAJ -->
+        <div class="page" id="illegalPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-triangle-exclamation"></i> İllegal Garaj</h1>
+                <p>Yasadışı modifikasyonlar uygula - Dikkat: Risk seviyeni artırır!</p>
+            </div>
+            <div class="illegal-warning">
+                <p><i class="fa-solid fa-land-mine-on"></i> Risk seviyesi %100'e ulaşırsa polis aracınıza el koyar!</p>
+            </div>
+            <div id="illegalContent"></div>
+        </div>
+
+        <!-- YARIŞ ORGANİZASYONLARI -->
+        <div class="page" id="racesPage">
+            <div class="page-header"
+                style="background: linear-gradient(135deg, #1c1c2b, #2b1c1c); border-bottom: 3px solid #e74c3c;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h1
+                            style="color:#e74c3c; font-weight:900; letter-spacing:1px; text-transform:uppercase; text-shadow:0px 2px 10px rgba(231,76,60,0.4);">
+                            <i class="fa-solid fa-flag-checkered"></i> Yeraltı & Pist Yarışları
+                        </h1>
+                        <p style="color:#e0e0e0; font-size:14px; margin-top:5px; max-width:600px;">
+                            Yüksek HP'li kişisel aracınızla pistlere inin. Rakiplerinizi toza boğarak hem servetinizi
+                            hem de prestijinizi katlayın!<br>
+                            <span style="font-size:12px; color:var(--text-muted);"><i
+                                    class="fa-solid fa-triangle-exclamation" style="color:#f39c12"></i> Dikkat:
+                                Yarışlarda kaza riski (%2.5 Pert, %17.5 Hasar) her zaman mevcuttur.</span>
+                        </p>
+                    </div>
+                    <div
+                        style="background:rgba(231,76,60,0.1); padding:10px 15px; border-radius:8px; border:1px solid rgba(231,76,60,0.3); text-align:center;">
+                        <div
+                            style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">
+                            Gereksinim</div>
+                        <div style="font-weight:bold; color:var(--text-primary);"><i class="fa-regular fa-id-badge"></i>
+                            Kişisel Araç</div>
+                    </div>
+                </div>
+            </div>
+            <div id="racesContent">
+                <div class="empty-state">
+                    <div class="empty-icon" style="opacity:0.5"><i class="fa-solid fa-flag-checkered"></i></div>
+                    <div class="empty-text">Aktif yarış yok</div>
+                    <div class="empty-sub" style="margin-top:5px;font-size:13px;color:var(--text-muted);">Şu an
+                        düzenlenen herhangi bir organizasyon bulunmuyor. Yeni yarışlar duyurulduğunda burada
+                        görünecektir.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HURDALIK -->
+        <div class="page" id="junkyardPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-screwdriver-wrench"></i> Hurdalık</h1>
+                <p>Ucuza hasarlı araç al, tamir et, kârlı sat!</p>
+            </div>
+            <div id="junkyardContent"></div>
+        </div>
+
+
+
+        <!-- LİDERLİK TABLOSU -->
+        <div class="page" id="leaderboardPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-trophy"></i> Liderlik Tablosu</h1>
+                <p>En başarılı galericiler</p>
+            </div>
+            <div id="leaderboardContent"></div>
+        </div>
+
+        <!-- BAŞARIMLAR -->
+        <div class="page" id="achievementsPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-medal"></i> Başarımlar</h1>
+                <p>Rozetlerini topla, ödüllerini kazan</p>
+            </div>
+            <div id="achievementsContent"></div>
+        </div>
+
+        <!-- GERİ BİLDİRİM -->
+        <div class="page" id="feedbackPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-comments"></i> Geri Bildirim</h1>
+                <p>Öneri, şikayet veya hata bildirimi gönderin</p>
+            </div>
+            <div class="feedback-container">
+                <div class="feedback-form-card">
+                    <h3>📝 Yeni Geri Bildirim</h3>
+                    <div class="form-group">
+                        <label class="form-label">Tip</label>
+                        <select class="form-input" id="feedbackType">
+                            <option value="suggestion">Öneri</option>
+                            <option value="bug">Hata Bildirimi</option>
+                            <option value="complaint">Şikayet</option>
+                            <option value="other">Diğer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Konu</label>
+                        <input class="form-input" id="feedbackSubject" placeholder="Kısa bir başlık..." maxlength="200">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mesajınız</label>
+                        <textarea class="form-input" id="feedbackMessage" rows="4"
+                            placeholder="Detaylı açıklama yazın..." style="resize:vertical"></textarea>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%" onclick="submitFeedback()"><i
+                            class="fa-solid fa-paper-plane"></i> Gönder</button>
+                </div>
+                <div class="feedback-history">
+                    <h3><i class="fa-solid fa-rectangle-list"></i> Gönderilerim</h3>
+                    <div id="feedbackList"></div>
+                </div>
+            </div>
+        </div>
+        <!-- PAZAR YERİ -->
+        <div class="page" id="marketPage">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-scale-balanced"></i> Pazar Yeri</h1>
+                <p>Oyuncular arası ticaret ve açık artırmalar (Yakında!)</p>
+            </div>
+            <div class="coming-soon-container">
+                <div class="coming-soon-card">
+                    <span class="cs-icon"><i class="fa-solid fa-trowel-bricks"></i></span>
+                    <h2>Çok Yakında!</h2>
+                    <p>Burada diğer oyuncularla araç takası yapabilecek ve nadir parçalar için açık artırmalara
+                        katılabileceksiniz.</p>
+                </div>
+            </div>
+        </div>
+        <!-- ======== BİLDİRİMLER SAYFASI ======== -->
+        <div class="page" id="notificationsPage">
+            <div class="page-header">
+                <div class="flex-between w-100">
+                    <h1><i class="fa-solid fa-bell"></i> Bildirimler</h1>
+                    <button class="btn btn-sm" onclick="markAllNotifsRead()">Tümünü Oku</button>
+                </div>
+            </div>
+            <!-- Reusing the same ID for simplicity of JS transition, just restyling it for the page layout -->
+            <div class="notif-page-list" id="notifList">
+                <div class="notif-empty">Bildirim yok</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ======== MODALS ======== -->
+
+
+    <!-- Araç Detay Modalı -->
+    <div class="modal" id="carDetailModal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <!-- Satış Modalı -->
+    <div class="modal" id="sellModal">
+        <div class="modal-overlay" onclick="closeSellModal()"></div>
+        <div class="modal-content modal-sell" id="sellModalContent"></div>
+    </div>
+
+    <!-- Pazarlık Modalı -->
+    <div class="modal" id="bargainModal">
+        <div class="modal-overlay" onclick="closeBargainModal()"></div>
+        <div class="modal-content modal-sell" id="bargainModalContent"></div>
+    </div>
+
+    <!-- Tamir/Boyama Modalı -->
+    <div class="modal" id="serviceModal">
+        <div class="modal-overlay" onclick="closeServiceModal()"></div>
+        <div class="modal-content" id="serviceModalContent"></div>
+    </div>
+
+    <!-- Fabrika Satın Alma Modalı -->
+    <div class="modal" id="factoryBuyModal">
+        <div class="modal-overlay" onclick="closeFactoryBuyModal()"></div>
+        <div class="modal-content modal-sell" id="factoryBuyModalContent"></div>
+    </div>
+
+    <!-- ======== BOTTOM NAVIGATION (MOBILE) ======== -->
+    <nav class="bottom-nav">
+        <button class="bottom-nav-btn active" data-page="home" onclick="navigateTo('home')">
+            <span class="nav-icon"><i class="fa-solid fa-house"></i></span><span class="nav-label">Ana Sayfa</span>
+        </button>
+        <button class="bottom-nav-btn" data-page="explore" onclick="navigateTo('explore')">
+            <span class="nav-icon"><i class="fa-solid fa-magnifying-glass"></i></span><span
+                class="nav-label">Keşfet</span>
+        </button>
+        <button class="bottom-nav-btn" data-page="mycars" onclick="navigateTo('mycars')">
+            <span class="nav-icon"><i class="fa-solid fa-car"></i></span><span class="nav-label">Galerim</span>
+        </button>
+        <button class="bottom-nav-btn" data-page="listings" onclick="navigateTo('listings')">
+            <span class="nav-icon"><i class="fa-solid fa-list-check"></i></span><span class="nav-label">İlanlarım</span>
+        </button>
+        <button class="bottom-nav-btn" id="menuToggle" onclick="toggleMoreMenu(event)">
+            <span class="nav-icon"><i class="fa-solid fa-bars"></i></span><span class="nav-label">Menü</span>
+        </button>
+    </nav>
+    <div class="more-menu-overlay" id="moreMenuOverlay" onclick="closeMoreMenu()"></div>
+    <div class="more-menu" id="moreMenu">
+        <button class="more-menu-item" data-page="categories" onclick="navigateTo('categories');closeMoreMenu()">
+            <span><i class="fa-solid fa-folder"></i></span><span>Kategoriler</span>
+        </button>
+        <button class="more-menu-item" data-page="favorites" onclick="navigateTo('favorites');closeMoreMenu()">
+            <span><i class="fa-solid fa-heart"></i></span><span>Favoriler</span>
+        </button>
+        <button class="more-menu-item" data-page="bank" onclick="navigateTo('bank');closeMoreMenu()">
+            <span><i class="fa-solid fa-building-columns"></i></span><span>Banka</span>
+        </button>
+        <button class="more-menu-item" data-page="profitchart" onclick="navigateTo('profitchart');closeMoreMenu()">
+            <span><i class="fa-solid fa-chart-line"></i></span><span>Kâr/Zarar</span>
+        </button>
+        <button class="more-menu-item" data-page="achievements" onclick="navigateTo('achievements');closeMoreMenu()">
+            <span><i class="fa-solid fa-medal"></i></span><span>Başarımlar</span>
+        </button>
+        <button class="more-menu-item" data-page="factory" onclick="navigateTo('factory');closeMoreMenu()">
+            <span><i class="fa-solid fa-industry"></i></span><span>Fabrika</span>
+        </button>
+        <button class="more-menu-item" data-page="custom" onclick="navigateTo('custom');closeMoreMenu()">
+            <span><i class="fa-solid fa-palette"></i></span><span>Özel Araç</span>
+        </button>
+        <button class="more-menu-item" data-page="illegal" onclick="navigateTo('illegal');closeMoreMenu()">
+            <span><i class="fa-solid fa-triangle-exclamation"></i></span><span>İllegal Garaj</span>
+        </button>
+        <button class="more-menu-item" data-page="junkyard" onclick="navigateTo('junkyard');closeMoreMenu()">
+            <span><i class="fa-solid fa-screwdriver-wrench"></i></span><span>Hurdalık</span>
+        </button>
+        <button class="more-menu-item" data-page="upgrades" onclick="navigateTo('upgrades');closeMoreMenu()">
+            <span><i class="fa-solid fa-wand-magic-sparkles"></i></span><span>Geliştirmeler</span>
+        </button>
+        <button class="more-menu-item" data-page="leaderboard" onclick="navigateTo('leaderboard');closeMoreMenu()">
+            <span><i class="fa-solid fa-trophy"></i></span><span>Liderler</span>
+        </button>
+        <button class="more-menu-item" data-page="races" onclick="navigateTo('races');closeMoreMenu()">
+            <span><i class="fa-solid fa-flag-checkered"></i></span><span>Yarışlar</span>
+        </button>
+
+        <button class="more-menu-item" data-page="bilgibankasi" onclick="navigateTo('bilgibankasi');closeMoreMenu()">
+            <span><i class="fa-solid fa-book-open"></i></span><span>Bilgi Bankası</span>
+        </button>
+        <button class="more-menu-item" data-page="feedback" onclick="navigateTo('feedback');closeMoreMenu()">
+            <span><i class="fa-solid fa-comment"></i></span><span>Geri Bildirim</span>
+        </button>
+    </div>
+    </div>
+    </div>
+
+    <!-- ======== TUTORIAL OVERLAY ======== -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+        <div class="tutorial-tooltip arrow-bottom" id="tutorialTooltip">
+            <div class="tutorial-step-icon" id="tutorialIcon"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <div class="tutorial-step-title" id="tutorialTitle">Hoş Geldin!</div>
+            <div class="tutorial-step-desc" id="tutorialDesc">Açıklama</div>
+            <div class="tutorial-controls">
+                <div class="tutorial-progress" id="tutorialProgress"></div>
+                <div class="tutorial-btns">
+                    <button class="tutorial-skip" onclick="endTutorial()">Atla</button>
+                    <button class="tutorial-next" id="tutorialNextBtn" onclick="nextTutorialStep()">İleri <i
+                            class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== NOTIFICATIONS ======== -->
+    <div class="notifications" id="notifications"></div>
+
+    <!-- ======== KULLANICI SÖZLEŞMESİ MODALI ======== -->
+    <div class="modal" id="tosModal" style="display:none">
+        <div class="modal-overlay" onclick="closeTosModal()"></div>
+        <div class="modal-content" style="max-width:800px;max-height:85vh;overflow-y:auto;padding:35px">
+            <h2 style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">📄 KULLANICI VE
+                HİZMET SÖZLEŞMESİ (TOS)</h2>
+            <div class="tos-content"
+                style="font-size:13px;line-height:1.6;color:var(--text-secondary);text-align:justify;">
+                <p><strong>ÖNEMLİ BİLDİRİM:</strong> Lütfen hesap açmadan ve OtoGaleri Tycoon TR ("Oyun", "Platform",
+                    "Hizmet") hizmetlerini kullanmadan önce bu Kullanıcı Sözleşmesini ("Sözleşme") dikkatlice okuyunuz.
+                    Sisteme erişim sağlamanız veya oyuna kayıt olmanız, işbu Sözleşmede yer alan tüm yasal koşulları,
+                    politikaları ve kısıtlamaları kayıtsız şartsız tahayyül edip peşinen kabul ettiğiniz anlamına
+                    gelmektedir.</p>
+
+                <h3>MADDE 1 - TARAFLAR VE TANIMLAR</h3>
+                <p>1.1. İşbu Sözleşme, OtoGaleri Tycoon TR platformunu ("Hizmet Sağlayıcı") yöneten ve sunan taraf ile
+                    platforma kayıt olan ve hizmetleri kullanan gerçek kişi ("Kullanıcı" veya "Oyuncu") arasında dijital
+                    ortamda karşılıklı irade beyanıyla akdedilmiştir.<br>
+                    1.2. "Sanal Varlık", Oyun içinde yer alan para birimleri (₺), araçlar, galeriler, garajlar,
+                    başarımlar ve eşyalar da dahil olmak ve bunlarla sınırlı olmamak üzere her türlü dijital meta
+                    anlamına gelir.</p>
+
+                <h3>MADDE 2 - SÖZLEŞMENİN KONUSU VE KAPSAMI</h3>
+                <p>2.1. İşbu Sözleşmenin konusu, OtoGaleri Tycoon TR isimli simülasyon oyununun Kullanıcı tarafından
+                    erişimi, oynanması ve platform üzerinden sunulan tüm etkileşimlerin hukuki çerçevesinin ve
+                    sınırlarının belirlenmesidir.</p>
+
+                <h3>MADDE 3 - KULLANICI BEYANI VE YÜKÜMLÜLÜKLERİ</h3>
+                <p>3.1. Kullanıcı, sunulan hizmetten faydalanabilmek için asgari olarak 13 yaşında olduğunu, şayet bağlı
+                    bulunduğu yargı çevresinde reşit sayılmıyorsa yasal velisi veya vasisinden tam ve eksiksiz onay
+                    aldığını taahhüt eder.<br>
+                    3.2. Kullanıcı, üyelik formunda istenilen bilgileri tam, doğru ve gerçeğe uygun olarak doldurmakla
+                    mükelleftir. Hesap güvenliğinden, kullanılan şifrenin gizliliğinden ve hesap üzerinden
+                    gerçekleştirilen her türlü işlemden münhasıran Kullanıcı sorumludur.<br>
+                    3.3. Kullanıcı; sisteme hile, bot, script, otomasyon programları, bellek okuyucu (memory reader),
+                    veri manipülatörleri, virüs veya sair kötü amaçlı yazılımlar ile müdahale etmeyeceğini, sunucu
+                    trafiğini haksız yere meşgul edecek (DDoS vb.) saldırılarda bulunmayacağını kabul, beyan ve taahhüt
+                    eder.</p>
+
+                <h3>MADDE 4 - FİKRİ VE SINAİ MÜLKİYET HAKLARI</h3>
+                <p>4.1. Platformda kullanılan her türlü görsel, işitsel, yazılı materyal, kaynak kodları, veritabanı
+                    tasarımları, logolar, yapay zeka aracılığıyla oluşturulmuş grafikler ve oyun mekanikleri OtoGaleri
+                    Tycoon TR yönetimine aittir.<br>
+                    4.2. Kullanıcı, Hizmet Sağlayıcının yazılı izni olmaksızın bu içerikleri kopyalayamaz, çoğaltamaz,
+                    dağıtamaz, tersine mühendislik (reverse engineering) yapamaz veya ticari bir amaca konu edemez.</p>
+
+                <h3>MADDE 5 - SANAL VARLIKLAR VE OYUN İÇİ EKONOMİ</h3>
+                <p>5.1. OtoGaleri Tycoon TR içinde kazanılan, toplanan veya satın alınan her türlü Sanal Varlık (Para,
+                    Araç, Eşya) gerçek dünyada hiçbir maddi değere, paraya veya ekonomik karşılığa sahip değildir.<br>
+                    5.2. Söz konusu varlıklar yalnızca Hizmet Sağlayıcı tarafından sağlanan lisans kapsamında
+                    kullanılabilir. Sanal varlıkların üçüncü parti platformlarda, kara borsalarda veya kişiler arasında
+                    gerçek para mukabilinde satılması, devredilmesi veya kiralanması kat'i surette yasaktır.</p>
+
+                <h3>MADDE 6 - YASA DIŞI EYLEMLER SİMÜLASYONU VE FERAGATNAME</h3>
+                <p>6.1. Platform içerisinde sunulan "İllegal Garaj", "Serseri Ayarı", "Kaçak Parça" gibi terimler ile
+                    kumar/bahis illüzyonu yaratan her türlü içerik tamamen kurgusal eğlence (simülasyon) amacına
+                    matuftur.<br>
+                    6.2. Hizmet Sağlayıcı, oyun içerisindeki bu dinamiklerin gerçek yasadışı faaliyetleri özendirdiğini
+                    veya teşvik ettiğini reddeder. Kullanıcının gerçek hayattaki her türlü yasadışı eylem ve
+                    davranışından münhasıran kendisi sorumludur.</p>
+
+                <h3>MADDE 7 - GİZLİLİK VE VERİLERİN KORUNMASI (KVKK)</h3>
+                <p>7.1. 6698 Sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") ve ilgili sair mevzuat uyarınca
+                    Kullanıcıya ait "Kullanıcı Adı" ve kriptografik metodlarla (bcrypt vb.) şifrelenmiş "Parola"
+                    bilgileri, yalnızca oyunun güvenliği ve kişiselleştirilmesi amaçlarıyla işlenmektedir.<br>
+                    7.2. IP Adresiniz, yasal zorunluluklar, spam engelleme ve güvenlik analizleri sebebiyle geçici
+                    loglama (kayıt tutma) süreçlerine tabidir. Elde edilen log kayıtları resmi makamların (örn:
+                    Savcılık, Emniyet) hukuken geçerli talepleri haricinde hiçbir üçüncü taraf, reklamveren veya ticari
+                    kuruluş ile paylaşılmamaktadır.</p>
+
+                <h3>MADDE 8 - REKLAM, SPONSORLUK VE ÇEREZLER (COOKIES)</h3>
+                <p>8.1. Oyun içerisinde yer alabilecek üçüncü taraf reklam sağlayıcıları (örn: Google AdSense),
+                    Kullanıcının internet alışkanlıklarını analiz edebilmek amacıyla Çerez (Cookie) ve Web İşaretçisi
+                    (Web Beacon) kullanabilir.<br>
+                    8.2. Kullanıcı, bu reklam mecralarının verilerini işlemesine zımnen rıza göstermiş addedilir. Üçüncü
+                    şahıs sitelerinin içeriklerinden ve gizlilik politikalarından Hizmet Sağlayıcı sorumlu tutulamaz.
+                </p>
+
+                <h3>MADDE 9 - HİZMETİN KESİNTİSİ, DEĞİŞTİRİLMESİ VE FESHİ</h3>
+                <p>9.1. Hizmet Sağlayıcı, önceden herhangi bir ihbar veya ihtara gerek duymaksızın oyunu bütünüyle veya
+                    kısmen durdurma, güncelleme, erişimi sınırlandırma veya sunucuları temelli kapatma hakkını saklı
+                    tutar.<br>
+                    9.2. Hizmetin sona ermesi durumunda Kullanıcı, zaman, emek veya potansiyel fırsat maliyetleri
+                    sebebiyle hiçbir surette zarar ziyan, tazminat veya iade talebinde bulunamaz.<br>
+                    9.3. İşbu Sözleşme şartlarından herhangi birinin ihlali durumunda, Kullanıcının sisteme erişimi
+                    derhal ve tek taraflı olarak, kalıcı veya geçici süreyle engellenebilir (banlanabilir).</p>
+
+                <h3>MADDE 10 - YETKİLİ MAHKEME VE UYUŞMAZLIKLARIN ÇÖZÜMÜ</h3>
+                <p>10.1. İşbu Sözleşmenin uygulanmasından ve yorumlanmasından doğacak her türlü hukuki, idari veya cezai
+                    uyuşmazlığın çözümünde Türkiye Cumhuriyeti kanunları tatbik edilecek ve münhasıran İstanbul
+                    Mahkemeleri ile İcra ve İflas Daireleri yetkili kılınacaktır.</p>
+
+                <p style="margin-top:25px; border-top:1px solid var(--border); padding-top:10px;"><strong>Yürürlük
+                        Tarihi ve Son Güncelleme:</strong> 20 Şubat 2026<br>
+                    <strong>Belge Revizyonu:</strong> v3.1.0-TR
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="closeTosModal()"
+                style="margin-top:20px;width:100%;font-size:16px;padding:12px;"><i class="fa-solid fa-check"></i>
+                Anladım, Şartları Kabul Ediyorum</button>
+        </div>
+    </div>
+
+    <!-- ======== HAKKINDA / YASAL MODAL ======== -->
+    <div class="modal" id="aboutModal" style="display:none">
+        <div class="modal-overlay" onclick="closeAboutModal()"></div>
+        <div class="modal-content" style="max-width:700px;max-height:80vh;overflow-y:auto;padding:30px">
+            <h2 style="margin-bottom:16px">Hakkımızda ve Yasal Bilgiler</h2>
+            <div style="font-size:14px;line-height:1.7;color:var(--text-secondary)">
+                <h3>OtoGaleri Tycoon TR</h3>
+                <p>OtoGaleri Tycoon TR, araç galerisi yönetim simülasyonu oyunudur. Oyuncular sanal bir araç galerisi
+                    açarak
+                    araç alıp satabilir, tamir edebilir, modifiye yapabilir ve en başarılı galericisi olmak için
+                    yarışabilir.</p>
+
+                <h3>Yapay Zeka Kullanımı</h3>
+                <p>Bu oyundaki tüm marka logoları, araç görselleri ve tasarım öğeleri yapay zeka teknolojisi
+                    kullanılarak
+                    üretilmiştir. Bu görseller tamamen özgün olup herhangi bir gerçek marka veya şirkete ait değildir.
+                    Tüm yapay zeka ile üretilen içeriklerin telif hakları OtoGaleri Tycoon TR'ye aittir.</p>
+
+                <h3>Kaynak Kod</h3>
+                <p>Oyunun tüm kaynak kodu (frontend, backend, veritabanı şeması) tarafımızca geliştirilmiştir.
+                    İzinsiz kopyalama, dağıtım veya ticari kullanım yasaktır.</p>
+
+                <h3>KVKK Aydınlatma Metni</h3>
+                <p>6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında veri sorumlusu olarak
+                    bilgilendirmekteyiz:</p>
+                <ul style="padding-left:20px">
+                    <li><strong>Toplanan veriler:</strong> Kullanıcı adı, şifre (hash'lenmiş)</li>
+                    <li><strong>İşleme amacı:</strong> Oyun hesabı oluşturma ve kimlik doğrulama</li>
+                    <li><strong>Saklama süresi:</strong> Hesap aktif olduğu sürece</li>
+                    <li><strong>Güvenlik:</strong> Şifreler bcrypt ile hash'lenir, SSL/TLS ile iletim sağlanır</li>
+                    <li><strong>Haklarınız:</strong> KVKK m.11 kapsamında verilerinize erişim, düzeltme ve silme
+                        talebinde bulunabilirsiniz</li>
+                    <li><strong>Aktarım:</strong> Kişisel verileriniz üçüncü taraflarla paylaşılmaz</li>
+                </ul>
+
+                <h3>İletişim</h3>
+                <p>Sorularınız ve talepleriniz için oyun içi geri bildirim sistemini kullanabilirsiniz.</p>
+
+                <p style="margin-top:20px;text-align:center;font-weight:700">
+                    &copy; 2026 OtoGaleri Tycoon TR - Tüm Hakları Saklıdır.
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="closeAboutModal()"
+                style="margin-top:20px;width:100%">Kapat</button>
+        </div>
+    </div>
+
+    <!-- ======== İŞLETME YORUMLARI MODAL ======== -->
+    <div class="modal" id="reviewsModal">
+        <div class="modal-content" style="max-width: 600px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h2><i class="fa-solid fa-star-half-stroke"></i> İşletme Yorumları</h2>
+                <button class="btn btn-ghost" onclick="closeReviewsModal()"
+                    style="font-size: 20px; width: 40px; height: 40px; border-radius: 50%; padding: 0;"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+
+            <!-- Overall Stats -->
+            <div class="reviews-summary"
+                style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:16px; border-radius:8px; border:1px solid var(--border); margin-bottom:16px;">
+                <div style="text-align:center;">
+                    <div style="font-size:32px; font-weight:800; color:var(--accent);" id="reviewsAvgText">-%</div>
+                    <div style="font-size:12px; color:var(--text-muted);">İtibar</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:24px; font-weight:700;" id="reviewsCountText">0</div>
+                    <div style="font-size:12px; color:var(--text-muted);">Toplam Yorum</div>
+                </div>
+            </div>
+
+            <!-- Scrollable list of generated reviews -->
+            <div class="reviews-list" id="reviewsList"
+                style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding-right:8px; padding-bottom:16px;">
+                <!-- Dynamically populated by app.js -->
+            </div>
+
+            <button class="btn btn-primary" onclick="closeReviewsModal()"
+                style="margin-top:16px; width: 100%;">Kapat</button>
+        </div>
+    </div>
+
+    <!-- ======== COPYRIGHT FOOTER ======== -->
+    <footer id="gameFooter" class="game-footer" style="display:none">
+        <div class="footer-content">
+            <span>&copy; 2026 OtoGaleri Tycoon TR - Tüm Hakları Saklıdır.</span>
+            <div class="footer-links">
+                <a href="javascript:void(0)" onclick="openTosModal()">Kullanıcı Sözleşmesi</a>
+                <a href="javascript:void(0)" onclick="openAboutModal()">Hakkımızda / KVKK</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ======== SCRIPTS ======== -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/app.js"></script>
+
+    <script>
+        // TOS Modal
+        function openTosModal() {
+            document.getElementById('tosModal').style.display = 'flex';
+        }
+        function closeTosModal() {
+            document.getElementById('tosModal').style.display = 'none';
+        }
+        // About/Legal Modal
+        function openAboutModal() {
+            document.getElementById('aboutModal').style.display = 'flex';
+        }
+        function closeAboutModal() {
+            document.getElementById('aboutModal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
