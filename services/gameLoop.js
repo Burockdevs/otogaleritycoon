@@ -263,11 +263,15 @@ async function startJunkyardRestockLoop() {
             const toAdd = Math.min(Math.floor(Math.random() * 2) + 2, 100 - currentCount); // 2-3 araç
 
             for (let j = 0; j < toAdd; j++) {
-                const brand = randomFrom(BRANDS.filter(b => b.prestige <= 5));
-                const model = randomFrom(brand.models);
-                const [br] = await pool.query('SELECT id FROM brands WHERE name = ?', [brand.name]);
-                const [mr] = await pool.query('SELECT id FROM models WHERE name = ? AND brand_id = ?', [model.name, br[0]?.id]);
-                if (!br[0] || !mr[0]) continue;
+                // Doğrudan veritabanındaki rastgele bir markayı ve modelini seçelim
+                const [[dbModel]] = await pool.query('SELECT m.id as model_id, m.name as model_name, m.tier, m.body, m.topSpeed, m.torque, b.id as brand_id, b.prestige FROM models m JOIN brands b ON m.brand_id = b.id WHERE b.prestige <= 5 ORDER BY RAND() LIMIT 1');
+
+                if (!dbModel) continue;
+
+                const brand = { prestige: dbModel.prestige };
+                const model = { name: dbModel.model_name, tier: dbModel.tier, body: dbModel.body, topSpeed: dbModel.topSpeed, torque: dbModel.torque };
+                const br = [{ id: dbModel.brand_id }];
+                const mr = [{ id: dbModel.model_id }];
 
                 const year = randomBetween(2000, 2018);
                 const km = randomBetween(150000, 500000);

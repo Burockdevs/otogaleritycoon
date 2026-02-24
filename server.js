@@ -10,6 +10,10 @@ const { testConnection } = require('./db/connection');
 const { setIO, startAllLoops } = require('./services/gameLoop');
 
 const app = express();
+// Sayfa yüklenme hızını artırmak için GZIP sıkıştırması
+const compression = require('compression');
+app.use(compression());
+
 const server = http.createServer(app);
 
 // PM2/Nginx/Cloudflare arkasında gerçek IP'leri alabilmek için kritik (Rate Limit hatalarını önler)
