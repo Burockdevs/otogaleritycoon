@@ -28,6 +28,46 @@ try {
     socket = { on: () => { }, emit: () => { }, connected: false };
 }
 
+// ============ SOCKET DISCONNECT / RECONNECT ============
+let isReconnecting = false;
+if (socket && socket.on) {
+    socket.on('disconnect', () => {
+        isReconnecting = true;
+        // Loader overlay göster
+        const loader = document.getElementById('globalLoader');
+        if (loader) {
+            const loaderText = loader.querySelector('.loader-text');
+            if (loaderText) loaderText.textContent = 'Yeniden bağlanılıyor...';
+            loader.classList.remove('hidden');
+        }
+    });
+
+    socket.on('connect', () => {
+        if (isReconnecting) {
+            isReconnecting = false;
+            // Loader gizle
+            const loader = document.getElementById('globalLoader');
+            if (loader) {
+                const loaderText = loader.querySelector('.loader-text');
+                if (loaderText) loaderText.textContent = 'OtoGaleri Tycoon Yükleniyor...';
+                loader.classList.add('hidden');
+            }
+            notify('Bağlantı yeniden kuruldu! <i class="fa-solid fa-wifi"></i>', 'success');
+            // Oyuncu verisini ve mevcut sayfayı tazele
+            if (typeof loadPlayer === 'function') loadPlayer();
+            if (typeof navigateTo === 'function' && currentPage) {
+                const loaders = {
+                    home: () => typeof loadHome === 'function' && loadHome(true),
+                    explore: () => typeof loadCars === 'function' && loadCars(1, true),
+                    listings: () => typeof loadListings === 'function' && loadListings(true),
+                    mycars: () => typeof loadMyCars === 'function' && loadMyCars(),
+                };
+                if (loaders[currentPage]) loaders[currentPage]();
+            }
+        }
+    });
+}
+
 // ============ AUTH FUNCTIONS (Defined early) ============
 function switchAuthTab(tab) {
     const loginTab = document.getElementById('loginTab');
@@ -157,7 +197,7 @@ async function handleLogin(event) {
         }
     } catch (e) {
         errEl.style.color = '#f87171';
-        errEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bağlantı hatası! Sunucu çalışıyor mu?';
+        errEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Sunucuya bağlanılamadı. Lütfen bir kaç saniye bekleyip tekrar deneyin.';
         btn.disabled = false;
         btn.innerHTML = '<img src="/img/logo1.png" class="auth-btn-icon" alt="logo"> Giriş Yap';
     }
@@ -225,7 +265,7 @@ async function handleRegister(event) {
         }
     } catch (e) {
         errEl.style.color = '#f87171';
-        errEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bağlantı hatası! Sunucu çalışıyor mu?';
+        errEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Sunucuya bağlanılamadı. Lütfen bir kaç saniye bekleyip tekrar deneyin.';
         btn.disabled = false;
         btn.innerHTML = '<img src="/img/logo2.png" class="auth-btn-icon" alt="logo"> Hesap Oluştur & Oyna <i class="fa-solid fa-rocket"></i>';
     }
@@ -514,7 +554,7 @@ async function api(path, opts) {
         const data = await r.json();
         if (data.needLogin) { showAuthScreen(); return { success: false }; }
         return data;
-    } catch (e) { notify('Bağlantı hatası!', 'error'); return { success: false }; }
+    } catch (e) { if (!isReconnecting) notify('Bağlantı hatası!', 'error'); return { success: false }; }
 }
 const get = path => api(path);
 const post = (path, body) => api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -801,6 +841,10 @@ function setupDayTimer() {
 // Socket senkronizasyonu
 // Socket senkronizasyonu
 socket.on('day_reset', (data) => {
+    // Giriş yapmadan bildirim gösterme
+    const authScreen = document.getElementById('authScreen');
+    if (authScreen && authScreen.classList.contains('active')) return;
+
     timeLeft = data.nextResetIn || 30;
     notify('Yeni bir gün başladı! <i class="fa-solid fa-sun-bright"></i> Teklifler güncellendi.', 'info');
     if (window.dayTimerInterval) {
@@ -1469,16 +1513,8 @@ async function openServiceModal(pcId) {
         </div>
         
         <div class="detail-section" style="margin-bottom:16px">
-            <div class="detail-section-title"><i class="fa-solid fa-shop"></i> Tamirci Seçimi</div>
-            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Tamirci kalitesi parça kalitesini ve fiyatı etkiler.</p>
-            <div class="mechanic-selector">
-                <div class="mechanic-chip ${selectedMechanic === 'bad' ? 'active' : ''}" onclick="selectMechanic('bad',${pcId})">
-                    <span class="mechanic-emoji"><i class="fa-solid fa-hammer"></i></span><span class="mechanic-name">Kötü Tamirci</span><span class="mechanic-cost">Ucuz | Kalite: %30-50</span></div>
-                <div class="mechanic-chip ${selectedMechanic === 'normal' ? 'active' : ''}" onclick="selectMechanic('normal',${pcId})">
-                    <span class="mechanic-emoji"><i class="fa-solid fa-wrench"></i></span><span class="mechanic-name">Normal Tamirci</span><span class="mechanic-cost">Normal | Kalite: %60-80</span></div>
-                <div class="mechanic-chip ${selectedMechanic === 'authorized' ? 'active' : ''}" onclick="selectMechanic('authorized',${pcId})">
-                    <span class="mechanic-emoji"><i class="fa-solid fa-building-shield"></i></span><span class="mechanic-name">Yetkili Servis</span><span class="mechanic-cost">Pahalı | Kalite: %100 Orijinal</span></div>
-            </div>
+            <div class="detail-section-title"><i class="fa-solid fa-shop"></i> Tamirhane</div>
+            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Tüm tamir işlemleri parçayı "%100" kaliteye ve "Değişen" statüsüne getirir.</p>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -1487,14 +1523,12 @@ async function openServiceModal(pcId) {
         let baseCost = car.price * 0.02;
         const sM = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
         baseCost *= (sM[p.status] || 1);
-        const tM = { 'authorized': 6.25, 'normal': 1.5, 'bad': 0.4 }; // mechanic.costMult * typeMultiplier
-        baseCost *= (tM[selectedMechanic] || 1);
         const estCost = Math.max(Math.round(baseCost), 1000);
 
         return `<div style="margin-bottom:8px;padding:8px;background:var(--bg-input);border-radius:8px">
                         <div style="font-weight:600;font-size:12px;margin-bottom:4px">${p.part_name} <span class="part-status ${partClass(p.status)}">(${p.status})</span>
                             ${p.quality !== undefined && p.quality !== null ? `<span style="font-size:10px;color:var(--text-muted)"> Kalite: %${p.quality}</span>` : ''}</div>
-                        <button class="btn btn-sm btn-success" onclick="repairPart(${pcId},${p.id},'${selectedMechanic}')"><i class="fa-solid fa-wrench"></i> Tamir Et (~${fmtPrice(estCost)})</button>
+                        <button class="btn btn-sm btn-success" onclick="repairPart(${pcId},${p.id})"><i class="fa-solid fa-wrench"></i> Tamir Et (~${fmtPrice(estCost)})</button>
                     </div>`
     }).join('') : '<p style="font-size:12px;color:var(--text-muted)">Tüm parçalar orijinal <i class="fa-solid fa-circle-check"></i></p>'}
             </div>
@@ -1523,13 +1557,11 @@ async function openServiceModal(pcId) {
 function closeServiceModal() { document.getElementById('serviceModal').classList.remove('active'); }
 
 function selectMechanic(type, pcId) {
-    selectedMechanic = type;
-    openServiceModal(pcId);
+    // Kaldırıldı
 }
 
-async function repairPart(pcId, partId, mechanicType) {
-    const repairType = mechanicType === 'authorized' ? 'original' : mechanicType === 'normal' ? 'aftermarket' : 'salvage';
-    const r = await post('/api/player/repair/' + pcId, { part_id: partId, repair_type: repairType, mechanic_type: mechanicType });
+async function repairPart(pcId, partId) {
+    const r = await post('/api/player/repair/' + pcId, { part_id: partId });
     if (r.success) {
         notify(r.message, 'success');
         updateFromResponse(r);

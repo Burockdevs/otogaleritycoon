@@ -4,7 +4,7 @@ const { pool } = require('../db/connection');
 const { getIO } = require('../services/gameLoop');
 
 // Admin şifresi (env'den al veya hardcoded fallback)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'GaleriAdmin2026!';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'v2e@yh3PGrp7NhN';
 
 // =================== ADMİN GİRİŞ ===================
 router.post('/login', async (req, res) => {

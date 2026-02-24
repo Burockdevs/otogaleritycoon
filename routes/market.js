@@ -37,9 +37,14 @@ async function recycleCarToMarket(connection, carId) {
                 newPrice = calculatePrice(md.base_price, md.year || 2020, newKm, md.damage_status || 'Hasarsız', md.engine_status || 'İyi', md.tier || 'C');
             }
 
+            // Hasar durumuna göre kademeli minimum fiyat
+            const dmgStatus = modelRes.length > 0 ? (modelRes[0].damage_status || 'Hasarsız') : 'Hasarsız';
+            const minPrices = { 'Hasarsız': 60000, 'Çizik': 45000, 'Boyalı': 40000, 'Değişen': 35000, 'Hasarlı': 25000, 'Pert': 15000 };
+            const fallbackPrice = minPrices[dmgStatus] || 25000;
+
             await connection.query(
                 "UPDATE cars SET owner_type='market', is_available=1, km = km + ?, cleanliness = ?, price = ? WHERE id=?",
-                [addedKm, newCleanliness, newPrice || 50000, carId]
+                [addedKm, newCleanliness, Math.max(newPrice, fallbackPrice), carId]
             );
         } else {
             // Hurdaya çıkar

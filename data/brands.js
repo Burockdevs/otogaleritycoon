@@ -5,12 +5,12 @@ const BRANDS = [
     {
         name: 'Tufaş', country: 'Türkiye', prestige: 1, logo: '/img/brands/tufa.svg', factory: 'Türkiye',
         models: [
-            { name: 'Şahın', tier: 1, body: 'Sedan', basePrice: 85000, topSpeed: 155, torque: 100 },
-            { name: 'Doğen', tier: 1, body: 'Sedan', basePrice: 95000, topSpeed: 160, torque: 110 },
-            { name: 'Kartol', tier: 1, body: 'Station Wagon', basePrice: 90000, topSpeed: 150, torque: 105 },
-            { name: 'SLZ', tier: 2, body: 'Sedan', basePrice: 120000, topSpeed: 175, torque: 130 },
-            { name: 'Murat 132', tier: 1, body: 'Sedan', basePrice: 70000, topSpeed: 145, torque: 90 },
-            { name: 'Serçi', tier: 1, body: 'Hatchback', basePrice: 65000, topSpeed: 140, torque: 85 }
+            { name: 'Şahın', tier: 1, body: 'Sedan', basePrice: 200000, topSpeed: 155, torque: 100 },
+            { name: 'Doğen', tier: 1, body: 'Sedan', basePrice: 220000, topSpeed: 160, torque: 110 },
+            { name: 'Kartol', tier: 1, body: 'Station Wagon', basePrice: 210000, topSpeed: 150, torque: 105 },
+            { name: 'SLZ', tier: 2, body: 'Sedan', basePrice: 280000, topSpeed: 175, torque: 130 },
+            { name: 'Murat 132', tier: 1, body: 'Sedan', basePrice: 170000, topSpeed: 145, torque: 90 },
+            { name: 'Serçi', tier: 1, body: 'Hatchback', basePrice: 150000, topSpeed: 140, torque: 85 }
         ]
     },
     {

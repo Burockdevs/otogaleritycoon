@@ -12,10 +12,8 @@ const { setIO, startAllLoops } = require('./services/gameLoop');
 const app = express();
 const server = http.createServer(app);
 
-// Cloudflare arkasında gerçek IP'leri alabilmek için
-if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-}
+// PM2/Nginx/Cloudflare arkasında gerçek IP'leri alabilmek için kritik (Rate Limit hatalarını önler)
+app.set('trust proxy', 1);
 
 const DOMAIN = process.env.DOMAIN || 'https://otogaleritycoon.com.tr';
 const PORT = process.env.PORT || 3000;
@@ -24,7 +22,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 // ============ SOCKET.IO (Cloudflare uyumlu) ============
 const io = new Server(server, {
     cors: {
-        origin: IS_PRODUCTION ? DOMAIN : '*',
+        origin: true, // Dinamik olarak tüm origin'lere izin ver
         credentials: true
     },
     // Cloudflare WebSocket proxy desteği
@@ -53,10 +51,10 @@ app.use(helmet({
 
 // ============ GÜVENLİK: CORS ============
 app.use(cors({
-    origin: IS_PRODUCTION ? DOMAIN : '*',
+    origin: true, // Request origin'ini otomatik kabul et (tarayıcı CORS hatalarını önler)
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // ============ GÜVENLİK: Request Body Limitleri ============
@@ -152,8 +150,8 @@ const sessionMiddleware = session({
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 gün
         httpOnly: true,
         sameSite: 'lax',
-        secure: IS_PRODUCTION, // Production'da sadece HTTPS
-        domain: IS_PRODUCTION ? '.otogaleritycoon.com.tr' : undefined
+        secure: false, // Nginx/Cloudflare SSL forwarding tam ayarlanmamışsa true yapmak login'i bozar
+        domain: undefined // Tüm IP ve domainlerde çalışması için
     }
 });
 

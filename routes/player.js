@@ -350,17 +350,16 @@ router.post('/inspect/:carId', async (req, res) => {
     }
 });
 
-// =================== TAMİR SİSTEMİ (TAMİRCİ TİPLERİYLE) ===================
+// =================== TAMİR SİSTEMİ (TEK TİP) ===================
 router.post('/repair/:playerCarId', async (req, res) => {
     try {
         const pid = req.playerId;
-        const { part_id, repair_type, mechanic_type } = req.body;
+        // Tamirci ve tamir tipi seçeneklerini kaldırdık, sadece part_id alınıyor
+        const { part_id } = req.body;
 
         // İlan kontrolü
         const [listing] = await pool.query('SELECT id FROM listings WHERE player_car_id = ? AND status = "active"', [req.params.playerCarId]);
         if (listing.length > 0) return res.json({ success: false, error: 'İlandaki aracı tamir edemezsiniz. Önce ilanı kaldırın.' });
-
-        const mechanic = MECHANIC_TYPES.find(m => m.id === (mechanic_type || 'normal')) || MECHANIC_TYPES[1];
 
         const [pCars] = await pool.query(
             `SELECT pc.*, c.price, b.name as brand_name, m.name as model_name
@@ -377,39 +376,24 @@ router.post('/repair/:playerCarId', async (req, res) => {
 
         if (part.status === 'Orijinal') return res.json({ success: false, error: 'Bu parça zaten orijinal durumda!' });
 
-        const baseCost = calculateRepairCost(part.status, part.quality, repair_type, pCar.price);
-        const cost = Math.round(baseCost * mechanic.costMult);
+        // Maliyet hesaplamasında tamirci çarpanı çıkarıldı
+        const cost = calculateRepairCost(part.status, pCar.price);
 
         const p = await getPlayer(pid);
-        if (p.balance < cost) return res.json({ success: false, error: `Yetersiz bakiye! Tamir: ${cost.toLocaleString('tr-TR')}₺ (${mechanic.name})` });
+        if (p.balance < cost) return res.json({ success: false, error: `Yetersiz bakiye! Tamir: ${cost.toLocaleString('tr-TR')}₺` });
 
-        // Tamirci tipine göre kalite belirle
-        let newStatus, newQuality;
-        if (mechanic.id === 'authorized') {
-            newStatus = repair_type === 'original' ? 'Orijinal' : 'Değişen';
-            newQuality = 100;
-        } else if (mechanic.id === 'bad') {
-            const q = mechanic.qualityRange;
-            newQuality = Math.floor(Math.random() * (q[1] - q[0] + 1)) + q[0];
-            newStatus = newQuality >= 80 ? 'Orijinal' : 'Değişen';
-            if (repair_type === 'salvage') { newStatus = 'Değişen'; newQuality = Math.min(newQuality, 50); }
-        } else {
-            switch (repair_type) {
-                case 'original': newStatus = 'Orijinal'; newQuality = 100; break;
-                case 'aftermarket': newStatus = 'Orijinal'; newQuality = 85; break;
-                case 'salvage': newStatus = 'Değişen'; newQuality = 60; break;
-                default: newStatus = 'Orijinal'; newQuality = 85;
-            }
-        }
+        // Tek tip tamir mantığı: Değişen, kalite 100
+        const newStatus = 'Değişen';
+        const newQuality = 100;
 
-        const valueIncrease = calculateRepairValueIncrease(pCar.price, part.status, repair_type);
+        const valueIncrease = calculateRepairValueIncrease(pCar.price, part.status);
         await pool.query('UPDATE car_parts SET status=?, quality=?, is_original=? WHERE id=?',
-            [newStatus, newQuality, (newStatus === 'Orijinal' && newQuality >= 95) ? 1 : 0, part_id]);
+            [newStatus, newQuality, 0, part_id]);
         await pool.query('UPDATE cars SET price=price+? WHERE id=?', [valueIncrease, pCar.car_id]);
         await pool.query('UPDATE player_cars SET buy_price = buy_price + ?, expenses = expenses + ? WHERE id = ?', [cost, cost, pCar.id]);
         await pool.query('UPDATE player SET balance=balance-?, xp=xp+10 WHERE id=?', [cost, pid]);
         await pool.query('INSERT INTO transactions (player_id,type,amount,description) VALUES (?,"buy",?,?)',
-            [pid, cost, `Tamir: ${part.part_name} (${mechanic.name})`]);
+            [pid, cost, `Tamir: ${part.part_name}`]);
         await pool.query('INSERT INTO profit_history (player_id,type,amount,description) VALUES (?,"expense",?,?)',
             [pid, cost, `Tamir: ${part.part_name}`]);
 
@@ -427,7 +411,7 @@ router.post('/repair/:playerCarId', async (req, res) => {
 
         res.json({
             success: true,
-            message: `${part.part_name} tamir edildi! <i class="fa-solid fa-wrench"></i> (${mechanic.name}) +${valueIncrease.toLocaleString('tr-TR')}₺`,
+            message: `${part.part_name} tamir edildi! <i class="fa-solid fa-wrench"></i> +${valueIncrease.toLocaleString('tr-TR')}₺`,
             cost, valueIncrease, newStatus,
             player: await getPlayer(pid)
         });
@@ -438,7 +422,7 @@ router.post('/repair/:playerCarId', async (req, res) => {
 
 // =================== TAMİRCİ TİPLERİ ===================
 router.get('/mechanic-types', (req, res) => {
-    res.json({ success: true, data: MECHANIC_TYPES });
+    res.json({ success: true, data: [] });
 });
 
 // =================== BOYAMA ===================

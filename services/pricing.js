@@ -356,7 +356,7 @@ function calculateInspectionCost(carPrice) {
 }
 
 // Tamir ücreti hesaplama
-function calculateRepairCost(partStatus, partQuality, repairType, carPrice) {
+function calculateRepairCost(partStatus, carPrice) {
     // Baz maliyet
     let baseCost = carPrice * 0.02; // Araç fiyatının %2'si
 
@@ -369,19 +369,11 @@ function calculateRepairCost(partStatus, partQuality, repairType, carPrice) {
     };
     baseCost *= (statusMultipliers[partStatus] || 1);
 
-    // Tamir tipi çarpanı
-    const typeMultipliers = {
-        'original': 2.5,     // Orijinal parça - pahalı ama kaliteli
-        'aftermarket': 1.5,  // Yan sanayi - orta
-        'salvage': 0.8       // Çıkma parça - ucuz ama kalitesiz
-    };
-    baseCost *= (typeMultipliers[repairType] || 1);
-
     return Math.round(Math.max(baseCost, 1000));
 }
 
 // Tamir sonrası değer artışı
-function calculateRepairValueIncrease(carPrice, oldStatus, repairType) {
+function calculateRepairValueIncrease(carPrice, oldStatus) {
     let increase = 0;
 
     const statusValues = {
@@ -392,14 +384,6 @@ function calculateRepairValueIncrease(carPrice, oldStatus, repairType) {
     };
 
     increase = carPrice * (statusValues[oldStatus] || 0.05);
-
-    // Orijinal parça ile tamir daha fazla değer katar
-    if (repairType === 'original') {
-        increase *= 1.3;
-    } else if (repairType === 'salvage') {
-        increase *= 0.6;
-    }
-
     return Math.round(increase);
 }
 

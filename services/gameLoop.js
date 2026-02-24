@@ -227,7 +227,7 @@ async function startDynamicMarketLoop() {
 // =================== DİNAMİK MARKET RESTOCK (30 DK) ===================
 async function startCheapCarRestockLoop() {
     try {
-        const [countRes] = await pool.query("SELECT COUNT(*) as c FROM cars WHERE owner_type='market' AND is_available=1 AND price <= 65000");
+        const [countRes] = await pool.query("SELECT COUNT(*) as c FROM cars WHERE owner_type='market' AND is_available=1 AND price <= 80000");
         if (countRes[0].c < 15) {
             console.log('📉 Piyasada ucuz araç azaldı. Sistem ucuz araç takviyesi yapıyor...');
             const needed = 15 - countRes[0].c;
@@ -242,17 +242,26 @@ async function startCheapCarRestockLoop() {
     setTimeout(startCheapCarRestockLoop, 30 * 60 * 1000); // 30 Dk
 }
 
-// =================== HURDALIK RESTOCK (4 saatte bir) ===================
+// =================== HURDALIK RESTOCK (5 dakikada bir, max 100 araç) ===================
 async function startJunkyardRestockLoop() {
     try {
         const [countRes] = await pool.query("SELECT COUNT(*) as c FROM cars WHERE owner_type='junkyard' AND is_available=1");
-        if (countRes[0].c < 10) {
-            console.log('🔩 Hurdalık boşalıyor. Sistem takviye yapıyor...');
-            const needed = 10 - countRes[0].c;
-            const { randomFrom, randomBetween, getEngineForModel, getHorsepowerForEngine, generateParts } = require('../db/seed'); // Re-use seed functions
-            const { BRANDS, COLORS, FUEL_TYPES, TRANSMISSIONS, JUNKYARD_DESCRIPTIONS } = require('../data/brands');
+        const currentCount = countRes[0].c;
 
-            for (let j = 0; j < needed; j++) {
+        // Max 100 aracı aşma, fazlalıkları sil
+        if (currentCount > 100) {
+            const excess = currentCount - 100;
+            await pool.query(`DELETE cp FROM car_parts cp JOIN cars c ON cp.car_id = c.id WHERE c.owner_type='junkyard' AND c.is_available=1 ORDER BY c.created_at ASC LIMIT ?`, [excess * 30]);
+            await pool.query(`DELETE FROM cars WHERE owner_type='junkyard' AND is_available=1 ORDER BY created_at ASC LIMIT ?`, [excess]);
+        }
+
+        // Her döngüde 2-3 araç ekle (max 100'e kadar)
+        if (currentCount < 100) {
+            const toAdd = Math.min(Math.floor(Math.random() * 2) + 2, 100 - currentCount); // 2-3 araç
+            const { randomFrom, randomBetween, getEngineForModel, getHorsepowerForEngine, generateParts } = require('../db/seed');
+            const { BRANDS, COLORS, INTERIORS, INTERIOR_COLORS, FUEL_TYPES, TRANSMISSIONS, JUNKYARD_DESCRIPTIONS } = require('../data/brands');
+
+            for (let j = 0; j < toAdd; j++) {
                 const brand = randomFrom(BRANDS.filter(b => b.prestige <= 5));
                 const model = randomFrom(brand.models);
                 const [br] = await pool.query('SELECT id FROM brands WHERE name = ?', [brand.name]);
@@ -263,8 +272,9 @@ async function startJunkyardRestockLoop() {
                 const km = randomBetween(150000, 500000);
                 const engineSize = getEngineForModel(model.tier, brand.prestige);
                 const hp = getHorsepowerForEngine(engineSize, model.tier);
-                const baseJunkPrice = model.basePrice * 0.08 + randomBetween(-5000, 5000);
-                const junkPrice = Math.max(Math.round(baseJunkPrice), 5000);
+
+                // Fiyat: 10.000 - 30.000₺ arası (hurdalık fiyatları)
+                const junkPrice = randomBetween(10000, 30000);
                 const desc = randomFrom(JUNKYARD_DESCRIPTIONS);
                 const engineSt = Math.random() < 0.4 ? 'Ölü' : 'Kötü';
                 const mh = engineSt === 'Ölü' ? randomBetween(0, 10) : randomBetween(10, 30);
@@ -292,7 +302,7 @@ async function startJunkyardRestockLoop() {
     } catch (err) {
         console.error('Hurdalık restock hatası:', err);
     }
-    setTimeout(startJunkyardRestockLoop, 4 * 60 * 60 * 1000); // 4 Saat
+    setTimeout(startJunkyardRestockLoop, 5 * 60 * 1000); // 5 Dakika
 }
 
 // Yardımcı fonksiyonlar (Kısa halleriyle korundu)
@@ -313,7 +323,10 @@ async function addRandomCarToMarket(forceCheap = false) {
         const dmg = forceCheap ? randomFrom(DAMAGE_STATUSES.filter(d => ['Çizik', 'Hasarlı', 'Değişen', 'Boyalı'].includes(d.status))).status : randomFrom(DAMAGE_STATUSES).status || 'Hasarsız';
         const eng = forceCheap ? randomFrom(ENGINE_STATUSES.filter(e => ['Orta', 'Kötü'].includes(e.status))).status : randomFrom(ENGINE_STATUSES).status || 'İyi';
         let price = calculatePrice(m.base_price, year, km, dmg, eng, m.tier);
-        price = Math.max(Math.round(price), 35000); // Clamp to global min price
+        // Hasar durumuna göre kademeli minimum fiyat
+        const minPrices = { 'Hasarsız': 60000, 'Çizik': 45000, 'Boyalı': 40000, 'Değişen': 35000, 'Hasarlı': 25000, 'Pert': 15000 };
+        const minPrice = minPrices[dmg] || 25000;
+        price = Math.max(Math.round(price), minPrice);
 
         const [res] = await pool.query('INSERT INTO cars SET ?', {
             brand_id: m.brand_id, model_id: m.id, year, km, price: price, color: randomFrom(COLORS),

@@ -245,7 +245,7 @@ router.get('/favorites', async (req, res) => {
              JOIN cars c ON f.car_id = c.id
              JOIN brands b ON c.brand_id = b.id
              JOIN models m ON c.model_id = m.id
-             WHERE f.player_id = ? AND c.is_available = 1
+             WHERE f.player_id = ? AND c.is_available = 1 AND c.owner_type = 'market'
              ORDER BY f.created_at DESC`,
             [req.playerId]
         );
