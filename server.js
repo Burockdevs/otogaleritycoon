@@ -173,6 +173,16 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
 
+// Session DEBUG (Opsiyonel: Sorun çözülünce kaldırılabilir)
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        const sid = req.sessionID ? req.sessionID.substring(0, 8) : 'none';
+        const pid = req.session ? req.session.playerId : 'none';
+        // console.log(`[DEBUG] Session: ${sid}, Player: ${pid}, Path: ${req.path}`);
+    }
+    next();
+});
+
 // ============ Cloudflare Trust Proxy ============
 if (IS_PRODUCTION) {
     app.set('trust proxy', 1); // Cloudflare proxy'sini güven

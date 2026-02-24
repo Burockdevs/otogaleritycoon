@@ -976,7 +976,8 @@ router.post('/junkyard-buy/:carId', async (req, res) => {
         const pid = req.playerId;
         const carId = req.params.carId;
 
-        // Hurdalık seviye kısıtlaması kaldırıldı
+        // Hurdalık seviye kısıtlaması kaldırıldı, ancak oyuncu verisi bakiye/slot kontrolü için gerekli
+        const p = await getPlayer(pid);
 
         const [cars] = await pool.query(
             "SELECT c.*, b.name as brand_name, m.name as model_name FROM cars c JOIN brands b ON c.brand_id=b.id JOIN models m ON c.model_id=m.id WHERE c.id=? AND c.owner_type='junkyard' AND c.is_available=1",

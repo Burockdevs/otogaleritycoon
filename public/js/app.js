@@ -122,10 +122,13 @@ async function checkAuth() {
         const r = await fetch('/api/auth/me');
         const data = await r.json();
         if (data.success && data.loggedIn) {
+            console.log("Auth verified successfully.");
+            isLoggedIn = true;
             hideAuthScreen();
-            // Oyunu başlat
             initGame();
         } else {
+            console.log("Not logged in. Showing auth screen.");
+            isLoggedIn = false;
             showAuthScreen();
             const loader = document.getElementById('globalLoader');
             if (loader) loader.classList.add('hidden');
@@ -139,13 +142,29 @@ async function checkAuth() {
 }
 
 async function initGame() {
+    console.log("Initializing game... isLoggedIn:", isLoggedIn);
     try {
+        if (!isLoggedIn) {
+            console.warn("initGame called but isLoggedIn is false. Aborting.");
+            return;
+        }
         if (socket && socket.emit) socket.emit('join'); // Odaya katıl
+
+        console.log("Loading brands...");
         await loadBrandsForFilter();
+
+        console.log("Loading player data...");
         await loadPlayer();
+
+        console.log("Navigating to home...");
         navigateTo('home');
     } catch (e) {
         console.error('Game init error:', e);
+        // Eğer 401 hatası aldıysak isLoggedIn'i kapat ve auth ekranına dön
+        if (e.message.includes('401') || e.status === 401) {
+            isLoggedIn = false;
+            showAuthScreen();
+        }
     } finally {
         const loader = document.getElementById('globalLoader');
         if (loader) loader.classList.add('hidden');
@@ -186,14 +205,17 @@ async function handleLogin(event) {
         const data = await r.json();
 
         if (data.success) {
+            console.log("Login successful:", data.message);
+            isLoggedIn = true;
             errEl.style.color = '#34d399';
-            errEl.textContent = ' ' + data.message;
             errEl.innerHTML = ' <i class="fa-solid fa-circle-check"></i> ' + data.message;
             setTimeout(() => {
                 hideAuthScreen();
                 initGame();
             }, 800);
         } else {
+            console.log("Login failed:", data.error);
+            isLoggedIn = false;
             errEl.style.color = '#f87171';
             errEl.textContent = ' ' + (data.error || 'Giriş başarısız!');
             errEl.innerHTML = ' <i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Giriş başarısız!');
@@ -562,7 +584,12 @@ async function api(path, opts) {
             ...opts
         });
         const data = await r.json();
-        if (data.needLogin) { showAuthScreen(); return { success: false }; }
+        if (data.needLogin) {
+            console.warn("API returned needLogin: true. Redirecting to auth.");
+            isLoggedIn = false;
+            showAuthScreen();
+            return { success: false };
+        }
         return data;
     } catch (e) { if (!isReconnecting) notify('Bağlantı hatası!', 'error'); return { success: false }; }
 }
