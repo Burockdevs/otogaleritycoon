@@ -355,22 +355,21 @@ function calculateInspectionCost(carPrice) {
     return Math.max(cost, 500); // Minimum 500₺
 }
 
-// Tamir ücreti hesaplama (Sadece Yetkili Servis mantığı)
+// Tamir ücreti hesaplama
 function calculateRepairCost(partStatus, carPrice) {
-    // Baz maliyet
-    let baseCost = carPrice * 0.02; // Araç fiyatının %2'si
-
-    // Durum çarpanı
-    const statusMultipliers = {
-        'Hasarlı': 2.0,
-        'Değişen': 1.5,
-        'Boyalı': 1.0,
-        'Çizik': 0.5
-    };
+    let baseCost = carPrice * 0.02;
+    const statusMultipliers = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
     baseCost *= (statusMultipliers[partStatus] || 1);
+    return Math.round(Math.max(baseCost * 1.5, 1000));
+}
 
-    // Yetkili Servis Çarpanı (Fixed 2.5x)
-    return Math.round(Math.max(baseCost * 2.5, 1000));
+// Motor Yenileme Ücreti (Sağlık ve Piyasa Değerine Göre)
+function calculateMotorRepairCost(carPrice, motorHealth) {
+    const healthLost = 100 - motorHealth;
+    // Maksimum maliyet (sağlık 0 ise) araç fiyatının %30'u olsun
+    const maxCost = carPrice * 0.30;
+    const cost = maxCost * (healthLost / 100);
+    return Math.round(Math.max(cost, 2000));
 }
 
 // Tamir sonrası değer artışı
@@ -404,7 +403,7 @@ function calculatePaintValueIncrease(carPrice, isLansomanColor) {
 
 // Yıkama ücreti
 function calculateWashCost(carPrice) {
-    return Math.round(Math.max(carPrice * 0.002, 200));
+    return Math.round(Math.max(carPrice * 0.003, 250));
 }
 
 // Pazarlık cevabı - satıcı kabul eder mi?
@@ -513,14 +512,13 @@ module.exports = {
     evaluateBargain,
     getOfferInterval,
     generateOfferPrice,
-    calculateAcceptanceProbability,
-    calculateAppraisalValue,
     calculateInspectionCost,
     calculateRepairCost,
     calculateRepairValueIncrease,
     calculatePaintCost,
     calculatePaintValueIncrease,
     calculateWashCost,
+    calculateMotorRepairCost,
     calculateLoanLimit,
     calculateInterestRate
 };

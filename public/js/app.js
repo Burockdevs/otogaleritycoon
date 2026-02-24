@@ -1539,59 +1539,67 @@ async function openServiceModal(pcId) {
 
     const partsR = await get('/api/cars/' + car.car_id);
     const parts = partsR.success ? (partsR.data.parts || []) : [];
-    const colors = ['Siyah', 'Beyaz', 'Gri', 'Kırmızı', 'Mavi', 'Lacivert', 'Yeşil', 'Bordo', 'Sarı', 'Turuncu', 'Pembe', 'Mor', 'Kahverengi', 'Bej', 'Gümüş', 'Altın'];
-
     const damagedParts = parts.filter(p => p.status !== 'Orijinal');
+
     const mhPct = car.motor_health || 0;
     const mhColor = mhPct >= 80 ? 'var(--success)' : mhPct >= 50 ? 'var(--warning)' : 'var(--danger)';
 
-    mc.innerHTML = `<button class="modal-close" onclick="closeServiceModal()">✕</button>
-        <h2 style="margin-bottom:16px"><i class="fa-solid fa-screwdriver-wrench"></i> Servis - ${car.brand_name} ${car.model_name}</h2>
-        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-            <div class="detail-spec-item" style="flex:1;min-width:80px"><span class="spec-label">Motor Sağlığı</span><span class="spec-value" style="color:${mhColor}">%${mhPct}</span></div>
-            <div class="detail-spec-item" style="flex:1;min-width:80px"><span class="spec-label">Temizlik</span><span class="spec-value">%${car.cleanliness || 0}</span></div>
-            <div class="detail-spec-item" style="flex:1;min-width:80px"><span class="spec-label">Hasar</span><span class="spec-value">${car.damage_status}</span></div>
-            <div class="detail-spec-item" style="flex:1;min-width:80px"><span class="spec-label">Araç Değeri</span><span class="spec-value" style="color:var(--gold)">${fmtPrice(car.price)}</span></div>
-        </div>
+    // Motor Yenileme Tahmini Maliyet (Sağlık ve Piyasa Değerine Göre)
+    const motorEstCost = Math.round(Math.max(car.price * 0.30 * ((100 - mhPct) / 100), 2000));
+
+    mc.innerHTML = `
+        <button class="modal-close" onclick="closeServiceModal()">✕</button>
+        <h2 style="margin-bottom:16px"><i class="fa-solid fa-screwdriver-wrench"></i> Araç Servisi</h2>
         
-        <div class="detail-section" style="margin-bottom:16px">
-            <div class="detail-section-title"><i class="fa-solid fa-building-shield"></i> Yetkili Servis</div>
-            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Tüm tamir işlemleri yetkili servis güvencesiyle parçayı "Değişen" statüsüne getirir.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px">
+            <div class="detail-spec-item"><span class="spec-label">Motor Sağlığı</span><span class="spec-value" style="color:${mhColor}">%${mhPct}</span></div>
+            <div class="detail-spec-item"><span class="spec-label">Temizlik</span><span class="spec-value">%${car.cleanliness || 0}</span></div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-            <div class="detail-section"><div class="detail-section-title"><i class="fa-solid fa-gears"></i> Parça Tamiri (${damagedParts.length} hasarlı)</div>
-                ${damagedParts.length ? damagedParts.map(p => {
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <!-- Sol: Parça Tamiri -->
+            <div class="detail-section">
+                <div class="detail-section-title"><i class="fa-solid fa-gears"></i> Parça Tamiri</div>
+                <div id="servicePartsList" style="max-height:300px;overflow-y:auto;padding-right:5px">
+                    ${damagedParts.length ? damagedParts.map(p => {
         let baseCost = car.price * 0.02;
         const sM = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
         baseCost *= (sM[p.status] || 1);
-        const estCost = Math.round(Math.max(baseCost * 2.5, 1000));
+        const estCost = Math.round(Math.max(baseCost * 1.5, 1000));
+        return `
+                            <div class="service-part-item" style="margin-bottom:10px;padding:12px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border)">
+                                <div style="font-weight:600;font-size:13px;margin-bottom:6px">${p.part_name} <span class="part-status ${partClass(p.status)}" style="font-size:10px">(${p.status})</span></div>
+                                <button class="btn btn-sm btn-success w-full" onclick="repairPart(${pcId},${p.id})">
+                                    <i class="fa-solid fa-wrench"></i> Tamir Et (~${fmtPrice(estCost)})
+                                </button>
+                            </div>`;
+    }).join('') : '<p style="color:var(--text-muted);font-size:12px">Tüm parçalar sağlam!</p>'}
+                </div>
+            </div>
 
-        return `<div style="margin-bottom:8px;padding:8px;background:var(--bg-input);border-radius:8px">
-                        <div style="font-weight:600;font-size:12px;margin-bottom:4px">${p.part_name} <span class="part-status ${partClass(p.status)}">(${p.status})</span>
-                            ${p.quality !== undefined && p.quality !== null ? `<span style="font-size:10px;color:var(--text-muted)"> Kalite: %${p.quality}</span>` : ''}</div>
-                        <button class="btn btn-sm btn-success" onclick="repairPart(${pcId},${p.id})"><i class="fa-solid fa-wrench"></i> Tamir Et (~${fmtPrice(estCost)})</button>
-                    </div>`
-    }).join('') : '<p style="font-size:12px;color:var(--text-muted)">Tüm parçalar orijinal <i class="fa-solid fa-circle-check"></i></p>'}
-            </div>
+            <!-- Sağ: Yıkama & Motor -->
             <div>
-                <div class="detail-section" style="margin-bottom:14px"><div class="detail-section-title"><i class="fa-solid fa-palette"></i> Boyama</div>
-                    <select class="form-select" id="paintColor" style="width:100%;margin-bottom:8px">${colors.map(c => `<option>${c}</option>`).join('')}</select>
-                    <p style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Lansman rengine boyarsanız talep artar!</p>
-                    <button class="btn btn-primary" onclick="paintCar(${pcId})"><i class="fa-solid fa-palette"></i> Boya (~${fmtPrice(Math.round(car.price * 0.015))})</button>
+                <div class="detail-section" style="margin-bottom:20px">
+                    <div class="detail-section-title"><i class="fa-solid fa-shower"></i> Araç Yıkama</div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Yıkama işlemi aracın değerini ve satış hızını artırır.</p>
+                    <button class="btn btn-primary w-full" onclick="washCar(${pcId})" ${car.cleanliness >= 95 ? 'disabled' : ''}>
+                        <i class="fa-solid fa-shower"></i> Hemen Yıka (~${fmtPrice(Math.round(Math.max(car.price * 0.003, 250)))})
+                    </button>
                 </div>
-                <div class="detail-section" style="margin-bottom:14px"><div class="detail-section-title"><i class="fa-solid fa-shower"></i> Yıkama</div>
-                    <p style="font-size:12px;margin-bottom:8px">Temizlik: %${car.cleanliness || 0}</p>
-                    <button class="btn btn-primary" onclick="washCar(${pcId})" ${(car.cleanliness || 0) >= 95 ? 'disabled' : ''}><i class="fa-solid fa-shower"></i> Yıka (~${fmtPrice(Math.round(car.price * 0.002 + 50))})</button>
+
+                <div class="detail-section">
+                    <div class="detail-section-title"><i class="fa-solid fa-engine"></i> Motor Bakımı</div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Motor sağlığını %100'e geri getirir.</p>
+                    <button class="btn btn-warning w-full" onclick="engineSwap(${pcId})" ${mhPct >= 100 ? 'disabled' : ''}>
+                        <i class="fa-solid fa-microchip"></i> Motoru Yenile (~${fmtPrice(motorEstCost)})
+                    </button>
                 </div>
-                ${mhPct < 85 ? `<div class="detail-section"><div class="detail-section-title"><i class="fa-solid fa-engine"></i> Motor Yenileme</div>
-                    <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Motorunuzu %100 sağlıklı hale getirin.</p>
-                    <button class="btn btn-sm btn-success" style="width:100%" onclick="engineSwap(${pcId})"><i class="fa-solid fa-building-shield"></i> Motoru Yenile (~${fmtPrice(Math.round(car.price * 0.45))})</button>
-                </div>` : ''}
             </div>
-        </div>`;
+        </div>
+    `;
     mc.scrollTop = scrollPos;
 }
+
 function closeServiceModal() { document.getElementById('serviceModal').classList.remove('active'); }
 
 function selectMechanic(type, pcId) {
@@ -1609,17 +1617,7 @@ async function repairPart(pcId, partId) {
     else notify(r.error, 'error');
 }
 
-async function paintCar(pcId) {
-    const color = document.getElementById('paintColor').value;
-    const r = await post('/api/player/paint/' + pcId, { color });
-    if (r.success) {
-        notify(r.message, 'success');
-        updateFromResponse(r);
-        openServiceModal(pcId);
-        loadMyCars(true);
-    }
-    else notify(r.error, 'error');
-}
+
 
 async function washCar(pcId) {
     const r = await post('/api/player/wash/' + pcId);

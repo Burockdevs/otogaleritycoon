@@ -4,7 +4,7 @@ const { pool } = require('../db/connection');
 const {
     calculateMarketValue, calculateInspectionCost, calculateRepairCost,
     calculateRepairValueIncrease, calculatePaintCost, calculatePaintValueIncrease,
-    calculateWashCost, calculateLoanLimit, calculateInterestRate
+    calculateWashCost, calculateMotorRepairCost, calculateLoanLimit, calculateInterestRate
 } = require('../services/pricing');
 const { ILLEGAL_MODS, MECHANIC_TYPES } = require('../data/brands');
 const { checkLevelUp } = require('../services/levelUp');
@@ -382,13 +382,13 @@ router.post('/repair/:playerCarId', async (req, res) => {
         const p = await getPlayer(pid);
         if (p.balance < cost) return res.json({ success: false, error: `Yetersiz bakiye! Tamir: ${cost.toLocaleString('tr-TR')}₺` });
 
-        // Tek tip tamir mantığı: Değişen, kalite 100
-        const newStatus = 'Değişen';
+        // Tek tip tamir mantığı: Orijinal statüsüne getir (listeden kalkması için)
+        const newStatus = 'Orijinal';
         const newQuality = 100;
 
         const valueIncrease = calculateRepairValueIncrease(pCar.price, part.status);
-        await pool.query('UPDATE car_parts SET status=?, quality=?, is_original=? WHERE id=?',
-            [newStatus, newQuality, 0, part_id]);
+        await pool.query('UPDATE car_parts SET status=?, quality=?, is_original=1 WHERE id=?',
+            [newStatus, newQuality, part_id]);
         await pool.query('UPDATE cars SET price=price+? WHERE id=?', [valueIncrease, pCar.car_id]);
         await pool.query('UPDATE player_cars SET buy_price = buy_price + ?, expenses = expenses + ? WHERE id = ?', [cost, cost, pCar.id]);
         await pool.query('UPDATE player SET balance=balance-?, xp=xp+10 WHERE id=?', [cost, pid]);
@@ -1029,11 +1029,11 @@ router.post('/engine-swap/:playerCarId', async (req, res) => {
         if (pCars.length === 0) return res.json({ success: false, error: 'Araç bulunamadı' });
         const pCar = pCars[0];
 
-        // Tek tip motor yenileme (Authorized kalitesinde)
-        const cost = Math.round(pCar.price * 0.45); // Ortalama bir maliyet
+        // Motor Yenileme (Sağlık ve Piyasa Değerine Göre)
+        const cost = calculateMotorRepairCost(pCar.price, pCar.motor_health || 0);
         const newHealth = 100;
         const newEngineStatus = 'Mükemmel';
-        const baseHp = pCar.horsepower || 100; // Varsayılan HP değeri ataması eklendi
+        const baseHp = pCar.horsepower || 100;
         const newHp = baseHp;
 
         const p = await getPlayer(pid);
