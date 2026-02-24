@@ -328,4 +328,11 @@ if (require.main === module) {
         .catch(() => process.exit(1));
 }
 
-module.exports = { seedDatabase };
+module.exports = {
+    seedDatabase,
+    randomFrom,
+    randomBetween,
+    getEngineForModel,
+    getHorsepowerForEngine,
+    generateParts
+};
