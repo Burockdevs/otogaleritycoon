@@ -264,7 +264,7 @@ async function startJunkyardRestockLoop() {
 
             for (let j = 0; j < toAdd; j++) {
                 // Doğrudan veritabanındaki rastgele bir markayı ve modelini seçelim
-                const [[dbModel]] = await pool.query('SELECT m.id as model_id, m.name as model_name, m.tier, m.body, m.topSpeed, m.torque, b.id as brand_id, b.prestige FROM models m JOIN brands b ON m.brand_id = b.id WHERE b.prestige <= 5 ORDER BY RAND() LIMIT 1');
+                const [[dbModel]] = await pool.query('SELECT m.id as model_id, m.name as model_name, m.tier, m.body_type as body, m.top_speed as topSpeed, m.torque, b.id as brand_id, b.prestige FROM models m JOIN brands b ON m.brand_id = b.id WHERE b.prestige <= 5 ORDER BY RAND() LIMIT 1');
 
                 if (!dbModel) continue;
 
