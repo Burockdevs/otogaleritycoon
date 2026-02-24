@@ -45,7 +45,7 @@ app.use(helmet({
             connectSrc: ["'self'", "wss:", "ws:", "https://cdn.jsdelivr.net"],
             frameSrc: ["'self'"],
             objectSrc: ["'none'"],
-            upgradeInsecureRequests: IS_PRODUCTION ? {} : null
+            upgradeInsecureRequests: IS_PRODUCTION ? [] : null
         }
     },
     crossOriginResourcePolicy: { policy: "cross-origin" } // Logo/resim paylaşımı
