@@ -245,13 +245,6 @@ app.use('/api/leaderboard', requireAuth, leaderboardRouter);
 app.use('/api/management', requireAuth, managementRouter);
 app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/feedback', requireAuth, feedbackRouter);
-app.use('/api/admin', adminRouter);
-
-// Admin panel sayfası
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.html')));
-
-
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.html')));
 
 // ============ GÜVENLİK: 404 Handler (bilgi sızdırmayı engelle) ============
 app.use('/api/*', (req, res) => {
@@ -284,11 +277,13 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Oyuncuyu kendi özel odasına al (sadece giriş yapmışsa)
+    const playerId = req.session ? req.session.playerId : null;
     if (playerId) {
         socket.join(`player_${playerId}`);
         console.log(`🔌 Oyuncu bağlandı: ${playerId} (Socket ID: ${socket.id})`);
     } else {
-        console.log('🔌 Ziyaretçi bağlandı:', socket.id);
+        console.log(`🔌 Ziyaretçi bağlandı: (Socket ID: ${socket.id})`);
     }
 
     socket.on('disconnect', () => {

@@ -1031,10 +1031,11 @@ router.post('/engine-swap/:playerCarId', async (req, res) => {
         const pCar = pCars[0];
 
         // Tek tip motor yenileme (Authorized kalitesinde)
-        cost = Math.round(pCar.price * 0.45); // Ortalama bir maliyet
-        newHealth = 100;
-        newEngineStatus = 'Mükemmel';
-        newHp = baseHp;
+        const cost = Math.round(pCar.price * 0.45); // Ortalama bir maliyet
+        const newHealth = 100;
+        const newEngineStatus = 'Mükemmel';
+        const baseHp = pCar.horsepower || 100; // Varsayılan HP değeri ataması eklendi
+        const newHp = baseHp;
 
         const p = await getPlayer(pid);
         if (p.balance < cost) return res.json({ success: false, error: `Yetersiz bakiye! Motor: ${cost.toLocaleString('tr-TR')}₺` });

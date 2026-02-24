@@ -694,8 +694,6 @@ INSERT INTO market_trends (event_name, name, type, description, affected_type, m
 ('Euro 7 Normu', 'Emisyon Düzenlemesi', 'mixed', 'Euro 7 emisyon normları yürürlükte! Eski dizel araçlar değer kaybediyor.', 'diesel_old', 0.80, 'Eski dizel araçlarda %20 değer kaybı', 0),
 ('Klasik Araç Fuarı', 'Klasik Otomobil Festivali', 'positive', 'Klasik araç fuarı açıldı! Vintage araçlara ilgi arttı.', 'classic', 1.25, 'Klasik araçlarda %25 değer artışı', 0);
 
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- =================== ORGANİZATÖR YARIŞLARI ===================
 CREATE TABLE races (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -722,3 +720,4 @@ CREATE TABLE race_participants (
     FOREIGN KEY (player_id) REFERENCES player(id),
     FOREIGN KEY (car_id) REFERENCES player_cars(id)
 );
+SET FOREIGN_KEY_CHECKS = 1;
