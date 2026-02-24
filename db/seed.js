@@ -279,8 +279,15 @@ async function seedDatabase() {
             const brand = randomFrom(BRANDS.filter(b => b.prestige <= 5));
             const model = randomFrom(brand.models);
             const [br] = await pool.query('SELECT id FROM brands WHERE name = ?', [brand.name]);
-            const [mr] = await pool.query('SELECT id FROM models WHERE name = ? AND brand_id = ?', [model.name, br[0]?.id]);
-            if (!br[0] || !mr[0]) continue;
+            if (!br[0]) {
+                console.warn(`  ⚠️ Marka bulunamadı: ${brand.name}`);
+                continue;
+            }
+            const [mr] = await pool.query('SELECT id FROM models WHERE name = ? AND brand_id = ?', [model.name, br[0].id]);
+            if (!mr[0]) {
+                console.warn(`  ⚠️ Model bulunamadı: ${model.name} (Marka: ${brand.name})`);
+                continue;
+            }
             const year = randomBetween(2000, 2018);
             const km = randomBetween(150000, 500000);
             const engineSize = getEngineForModel(model.tier, brand.prestige);

@@ -118,7 +118,7 @@ CREATE TABLE player (
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) DEFAULT 'Oyuncu',
-    balance DECIMAL(15,2) DEFAULT 50000.00,
+    balance DECIMAL(15,2) DEFAULT 75000.00,
     level INT DEFAULT 1,
     xp INT DEFAULT 0,
     xp_needed INT DEFAULT 100,

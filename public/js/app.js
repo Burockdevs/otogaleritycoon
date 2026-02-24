@@ -2926,7 +2926,7 @@ async function submitJoinRace() {
 const TUTORIAL_STEPS = [
     {
         icon: '<i class="fa-solid fa-hand-wave"></i>', title: 'Hoş Geldin Galericimiz!',
-        desc: '50.000₺ sermayenle galeri imparatorluğunu kurmaya hazır mısın? Sana kısa bir tur atalım!',
+        desc: '75.000₺ sermayenle galeri imparatorluğunu kurmaya hazır mısın? Sana kısa bir tur atalım!',
         target: null, arrow: 'bottom'
     },
     {

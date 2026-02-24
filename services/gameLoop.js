@@ -254,8 +254,15 @@ async function startJunkyardRestockLoop() {
         // Max 100 aracı aşma, fazlalıkları sil
         if (currentCount > 100) {
             const excess = currentCount - 100;
-            await pool.query(`DELETE cp FROM car_parts cp JOIN cars c ON cp.car_id = c.id WHERE c.owner_type='junkyard' AND c.is_available=1 ORDER BY c.created_at ASC LIMIT ?`, [excess * 30]);
-            await pool.query(`DELETE FROM cars WHERE owner_type='junkyard' AND is_available=1 ORDER BY created_at ASC LIMIT ?`, [excess]);
+            // SQLite/MySQL multi-table DELETE with LIMIT is not standard and often fails or works differently.
+            // We should get the IDs of the cars to delete first.
+            const [toDelete] = await pool.query(`SELECT id FROM cars WHERE owner_type='junkyard' AND is_available=1 ORDER BY created_at ASC LIMIT ?`, [excess]);
+            const deleteIds = toDelete.map(r => r.id);
+
+            if (deleteIds.length > 0) {
+                await pool.query('DELETE FROM car_parts WHERE car_id IN (?)', [deleteIds]);
+                await pool.query('DELETE FROM cars WHERE id IN (?)', [deleteIds]);
+            }
         }
 
         // Her döngüde 2-3 araç ekle (max 100'e kadar)
@@ -269,9 +276,15 @@ async function startJunkyardRestockLoop() {
                 if (!dbModel) continue;
 
                 const brand = { prestige: dbModel.prestige };
-                const model = { name: dbModel.model_name, tier: dbModel.tier, body: dbModel.body, topSpeed: dbModel.topSpeed, torque: dbModel.torque };
-                const br = [{ id: dbModel.brand_id }];
-                const mr = [{ id: dbModel.model_id }];
+                const model = {
+                    name: dbModel.model_name,
+                    tier: dbModel.tier,
+                    body: dbModel.body || 'Sedan',
+                    topSpeed: dbModel.topSpeed || 150,
+                    torque: dbModel.torque || 150
+                };
+                const brandId = dbModel.brand_id;
+                const modelId = dbModel.model_id;
 
                 const year = randomBetween(2000, 2018);
                 const km = randomBetween(150000, 500000);
@@ -289,12 +302,12 @@ async function startJunkyardRestockLoop() {
                      engine_size, horsepower, top_speed, torque, motor_health, damage_status, engine_status,
                      body_type, interior, interior_color, seller_type, description, cleanliness,
                      owner_type, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'junkyard', 1)`,
-                    [br[0].id, mr[0].id, year, km, junkPrice, randomFrom(COLORS),
-                    randomFrom(FUEL_TYPES.map(f => f.type)), randomFrom(TRANSMISSIONS.map(t => t.type)),
-                        engineSize, hp, Math.max((model.topSpeed || 150) - 50, 80), Math.max((model.torque || 150) - 60, 40),
+                    [brandId, modelId, year, km, junkPrice, randomFrom(COLORS),
+                        randomFrom(FUEL_TYPES.map(f => f.type)), randomFrom(TRANSMISSIONS.map(t => t.type)),
+                        engineSize, hp, Math.max(model.topSpeed - 50, 80), Math.max(model.torque - 60, 40),
                         mh, Math.random() < 0.5 ? 'Pert' : 'Hasarlı', engineSt,
-                    model.body, randomFrom(INTERIORS), randomFrom(INTERIOR_COLORS), 'Hurdalık', desc,
-                    randomBetween(5, 25)]
+                        model.body, randomFrom(INTERIORS), randomFrom(INTERIOR_COLORS), 'Hurdalık', desc,
+                        randomBetween(5, 25)]
                 );
                 const jcId = cr.insertId;
                 const jParts = generateParts('Hasarlı');

@@ -38,7 +38,7 @@ router.post('/register', async (req, res) => {
 
         // Yeni kullanıcı oluştur (Başlangıç 50.000₺)
         const [result] = await pool.query(
-            'INSERT INTO player (username, password_hash, name, balance, tos_accepted, tos_accepted_at) VALUES (?, ?, ?, 50000, 1, NOW())',
+            'INSERT INTO player (username, password_hash, name, balance, tos_accepted, tos_accepted_at) VALUES (?, ?, ?, 75000, 1, NOW())',
             [username, passwordHash, username]
         );
 
@@ -57,7 +57,7 @@ router.post('/register', async (req, res) => {
 
         res.json({
             success: true,
-            message: `Hoş geldin ${username}! <i class="fa-solid fa-car"></i> 50.000₺ ile oyuna başlıyorsun!`,
+            message: `Hoş geldin ${username}! <i class="fa-solid fa-car"></i> 75.000₺ ile oyuna başlıyorsun!`,
             playerId: result.insertId
         });
     } catch (err) {

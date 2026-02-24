@@ -956,8 +956,7 @@ router.post('/illegal-mod/:playerCarId', async (req, res) => {
 // =================== HURDALIK ===================
 router.get('/junkyard', async (req, res) => {
     try {
-        const p = await getPlayer(req.playerId);
-        if (p.level < 3) return res.json({ success: false, error: 'Hurdalık seviye 3\'te açılır!' });
+        // Hurdalık seviye kısıtlaması kaldırıldı
 
         const [cars] = await pool.query(
             `SELECT c.*, b.name as brand_name, b.logo_emoji, b.prestige,
@@ -977,8 +976,7 @@ router.post('/junkyard-buy/:carId', async (req, res) => {
         const pid = req.playerId;
         const carId = req.params.carId;
 
-        const p = await getPlayer(pid);
-        if (p.level < 3) return res.json({ success: false, error: 'Hurdalık seviye 3\'te açılır!' });
+        // Hurdalık seviye kısıtlaması kaldırıldı
 
         const [cars] = await pool.query(
             "SELECT c.*, b.name as brand_name, m.name as model_name FROM cars c JOIN brands b ON c.brand_id=b.id JOIN models m ON c.model_id=m.id WHERE c.id=? AND c.owner_type='junkyard' AND c.is_available=1",
