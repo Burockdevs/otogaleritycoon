@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise');
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'v2e@yh3PGrp7NhN',
     database: 'galeri_simulator',
     waitForConnections: true,
     connectionLimit: 10,
@@ -17,7 +17,7 @@ const pool = mysql.createPool({
 async function testConnection() {
     try {
         // Güvenlik amaçlı db'yi önceden oluştur
-        const tempConn = await mysql.createConnection({ host: 'localhost', user: 'root', password: '' });
+        const tempConn = await mysql.createConnection({ host: 'localhost', user: 'root', password: 'v2e@yh3PGrp7NhN' });
         await tempConn.query("CREATE DATABASE IF NOT EXISTS galeri_simulator DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         await tempConn.end();
 
