@@ -581,6 +581,7 @@ async function api(path, opts) {
     try {
         const r = await fetch(API + path, {
             credentials: 'include',
+            cache: 'no-store',
             ...opts
         });
         const data = await r.json();
@@ -1532,9 +1533,14 @@ async function openServiceModal(pcId) {
     mc.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     document.getElementById('serviceModal').classList.add('active');
 
-    const r = await get('/api/player/cars');
-    if (!r.success) return;
-    const car = r.data.find(c => c.player_car_id === pcId);
+    let car = window.myCars?.find(c => c.player_car_id === pcId);
+    if (!car) {
+        // Fallback or full refresh if not found in cache
+        const r = await get('/api/player/cars');
+        if (!r.success) return;
+        car = r.data.find(c => c.player_car_id === pcId);
+    }
+
     if (!car) { mc.innerHTML = '<p>Araç bulunamadı</p>'; return; }
 
     const partsR = await get('/api/cars/' + car.car_id);

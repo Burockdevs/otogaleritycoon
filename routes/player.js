@@ -494,7 +494,7 @@ router.post('/wash/:playerCarId', async (req, res) => {
         const p = await getPlayer(pid);
         if (p.balance < cost) return res.json({ success: false, error: `Yetersiz bakiye! Yıkama: ${cost.toLocaleString('tr-TR')}₺` });
 
-        const newCleanliness = Math.min(100, pCar.cleanliness + 50);
+        const newCleanliness = 100;
         const valueIncrease = Math.round(pCar.price * 0.01);
 
         await pool.query('UPDATE cars SET cleanliness=?, price=price+? WHERE id=?', [newCleanliness, valueIncrease, pCar.car_id]);
