@@ -218,7 +218,7 @@ CREATE TABLE npc_buyers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
     type ENUM('pazarlikci','normal','comert') DEFAULT 'normal',
-    avatar VARCHAR(10) DEFAULT '👤',
+    avatar VARCHAR(50) DEFAULT '👤',
     wealth_level INT DEFAULT 1 -- 1: Fakir, 2: Orta, 3: Zengin, 4: Milyoner
 );
 
