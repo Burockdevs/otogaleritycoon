@@ -1,4 +1,6 @@
 const { pool, testConnection } = require('./connection');
+const fs = require('fs');
+const path = require('path');
 const {
     BRANDS, COLORS, INTERIORS, INTERIOR_COLORS,
     FUEL_TYPES, TRANSMISSIONS, ENGINE_SIZES,
@@ -142,6 +144,18 @@ async function seedDatabase() {
         const isConnected = await testConnection();
         if (!isConnected) {
             throw new Error('Veritabanı bağlantısı sağlanamadığı için seed işlemi durduruldu.');
+        }
+
+        // Tabloların var olup olmadığını kontrol et
+        const [tables] = await pool.query("SHOW TABLES LIKE 'player'");
+        if (tables.length === 0) {
+            console.log('📝 Tablolar bulunamadı, şema yükleniyor...');
+            const schemaPath = path.join(__dirname, 'schema.sql');
+            const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+
+            // schema.sql dosyasını çalıştır (multipleStatements: true bağlantı ayarlarında açık olmalı)
+            await pool.query(schemaSql);
+            console.log('✅ Veritabanı şeması (tablolar) başarıyla oluşturuldu.');
         }
 
         // Mevcut verileri temizle
