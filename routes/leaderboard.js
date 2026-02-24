@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
                 FROM player p
                 WHERE p.id = ?
             `, [playerId]);
-            
+
             if (rankResult.length > 0) {
                 myRank = rankResult[0];
             }
@@ -65,6 +65,7 @@ router.get('/', async (req, res) => {
             myRank
         });
     } catch (err) {
+        console.error('Leaderboard Error:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });

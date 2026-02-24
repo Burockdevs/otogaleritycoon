@@ -255,6 +255,12 @@ app.use('/api/leaderboard', requireAuth, leaderboardRouter);
 app.use('/api/management', requireAuth, managementRouter);
 app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/feedback', requireAuth, feedbackRouter);
+app.use('/api/admin', adminRouter);
+
+// Admin shortcut
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 
 // ============ GÜVENLİK: 404 Handler (bilgi sızdırmayı engelle) ============
 app.use('/api/*', (req, res) => {
