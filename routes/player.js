@@ -1046,17 +1046,23 @@ router.post('/engine-swap/:playerCarId', async (req, res) => {
             [newHealth, newEngineStatus, newHp, Math.max(valueDiff, 0), pCar.car_id]);
         await pool.query('UPDATE player_cars SET buy_price = buy_price + ?, expenses = expenses + ? WHERE id = ?', [cost, cost, pcId]);
         await pool.query('UPDATE player SET balance=balance-?, xp=xp+20 WHERE id=?', [cost, pid]);
+
         await pool.query('INSERT INTO transactions (player_id,type,amount,description) VALUES (?,"buy",?,?)',
-            [pid, cost, `Motor değişimi: ${engine_type}`]);
+            [pid, cost, `Motor değişimi: ${pCar.brand_name} ${pCar.model_name}`]);
         await pool.query('INSERT INTO profit_history (player_id,type,amount,description) VALUES (?,"expense",?,?)',
             [pid, cost, `Motor değişimi: ${pCar.brand_name} ${pCar.model_name}`]);
+
+        // Bildirim ekle (Persistence)
+        await pool.query('INSERT INTO notifications (player_id, type, title, message) VALUES (?, "system", "Motor Yenileme", ?)',
+            [pid, `${pCar.brand_name} ${pCar.model_name} aracınızın motoru yetkili serviste sıfırlandı! <i class="fa-solid fa-engine"></i>`]);
+
         // Motor parçasını güncelle
         await pool.query("UPDATE car_parts SET status='Orijinal', quality=? WHERE car_id=? AND part_name='Motor'",
             [newHealth, pCar.car_id]);
 
         res.json({
             success: true,
-            message: `Motor değiştirildi! < i class= "fa-solid fa-wrench" ></i > Sağlık: % ${newHealth} | Durum: ${newEngineStatus}`,
+            message: `Motor değiştirildi! <i class="fa-solid fa-wrench"></i> Sağlık: %${newHealth} | Durum: ${newEngineStatus}`,
             cost,
             player: await getPlayer(pid)
         });

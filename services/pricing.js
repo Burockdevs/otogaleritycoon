@@ -355,7 +355,7 @@ function calculateInspectionCost(carPrice) {
     return Math.max(cost, 500); // Minimum 500₺
 }
 
-// Tamir ücreti hesaplama
+// Tamir ücreti hesaplama (Sadece Yetkili Servis mantığı)
 function calculateRepairCost(partStatus, carPrice) {
     // Baz maliyet
     let baseCost = carPrice * 0.02; // Araç fiyatının %2'si
@@ -369,7 +369,8 @@ function calculateRepairCost(partStatus, carPrice) {
     };
     baseCost *= (statusMultipliers[partStatus] || 1);
 
-    return Math.round(Math.max(baseCost, 1000));
+    // Yetkili Servis Çarpanı (Fixed 2.5x)
+    return Math.round(Math.max(baseCost * 2.5, 1000));
 }
 
 // Tamir sonrası değer artışı

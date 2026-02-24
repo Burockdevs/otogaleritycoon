@@ -165,7 +165,7 @@ async function startMasterDayLoop() {
         // Global Reset Sinyali
         if (io) {
             io.emit('day_reset', { nextResetIn: 30 });
-            io.emit('player_update', {});
+            // io.emit('player_update', {}); // Removing broad emit
         }
 
         nextResetTime = Date.now() + 30000;
@@ -260,6 +260,7 @@ async function startJunkyardRestockLoop() {
             const deleteIds = toDelete.map(r => r.id);
 
             if (deleteIds.length > 0) {
+                // MySQL requires [ids] format for IN (?) when using pools
                 await pool.query('DELETE FROM car_parts WHERE car_id IN (?)', [deleteIds]);
                 await pool.query('DELETE FROM cars WHERE id IN (?)', [deleteIds]);
             }

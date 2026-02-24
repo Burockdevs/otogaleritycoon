@@ -43,10 +43,10 @@ router.get('/', async (req, res) => {
         let myRank = null;
         if (playerId) {
             const [rankResult] = await pool.query(`
-                SELECT p.*, 
+                SELECT id, username, level, prestige_score, total_profit, total_sales,
                     (SELECT COUNT(*) + 1 FROM player p2 WHERE p2.prestige_score > p.prestige_score) as rank
                 FROM player p
-                WHERE p.id = ?
+                WHERE id = ?
             `, [playerId]);
 
             if (rankResult.length > 0) {

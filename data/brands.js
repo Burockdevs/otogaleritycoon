@@ -621,8 +621,6 @@ const ILLEGAL_MODS = [
 
 // Tamirci Tipleri
 const MECHANIC_TYPES = [
-    { id: 'bad', name: 'Kötü Tamirci', icon: 'wrench-bad', qualityRange: [30, 60], costMult: 0.5, description: 'Ucuz ama kalitesiz. Parçalar kısa ömürlü olabilir.' },
-    { id: 'normal', name: 'Normal Tamirci', icon: 'wrench-normal', qualityRange: [60, 85], costMult: 1.0, description: 'Orta kalite iş. Fiyat/performans dengeli.' },
     { id: 'authorized', name: 'Yetkili Servis', icon: 'wrench-authorized', qualityRange: [100, 100], costMult: 2.5, description: 'En iyi kalite. Orijinal parça garantisi. Değişen (Orijinal) olarak işlenir.' }
 ];
 

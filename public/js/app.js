@@ -622,6 +622,14 @@ function navigateTo(page) {
     };
     if (loaders[page]) loaders[page]();
     if (typeof updatePlayerUI === 'function') updatePlayerUI();
+
+    // Yeni teklif rozetini temizle (İlanlarım sayfasına girildiğinde)
+    if (page === 'listings') {
+        const lb = document.getElementById('listingsBadge');
+        const mlb = document.getElementById('mobileListingsBadge');
+        if (lb) lb.style.display = 'none';
+        if (mlb) mlb.style.display = 'none';
+    }
 }
 
 function toggleNotificationsPage() {
@@ -1547,8 +1555,8 @@ async function openServiceModal(pcId) {
         </div>
         
         <div class="detail-section" style="margin-bottom:16px">
-            <div class="detail-section-title"><i class="fa-solid fa-shop"></i> Tamirhane</div>
-            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Tüm tamir işlemleri parçayı "%100" kaliteye ve "Değişen" statüsüne getirir.</p>
+            <div class="detail-section-title"><i class="fa-solid fa-building-shield"></i> Yetkili Servis</div>
+            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Tüm tamir işlemleri yetkili servis güvencesiyle parçayı "Değişen" statüsüne getirir.</p>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -1557,7 +1565,7 @@ async function openServiceModal(pcId) {
         let baseCost = car.price * 0.02;
         const sM = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
         baseCost *= (sM[p.status] || 1);
-        const estCost = Math.max(Math.round(baseCost), 1000);
+        const estCost = Math.round(Math.max(baseCost * 2.5, 1000));
 
         return `<div style="margin-bottom:8px;padding:8px;background:var(--bg-input);border-radius:8px">
                         <div style="font-weight:600;font-size:12px;margin-bottom:4px">${p.part_name} <span class="part-status ${partClass(p.status)}">(${p.status})</span>
@@ -2853,7 +2861,16 @@ socket.on('player_update', () => {
 socket.on('new_offer', (offer) => {
     if (!isLoggedIn) return;
     notify(`Yeni Teklif! ${offer.npc_name}: ${fmtPrice(offer.offer_price)}`, 'offer');
-    if (currentPage === 'listings') loadListings();
+
+    // Teklif rozetini göster (İlanlarım sayfasında değilsek)
+    if (currentPage !== 'listings') {
+        const lb = document.getElementById('listingsBadge');
+        const mlb = document.getElementById('mobileListingsBadge');
+        if (lb) lb.style.display = 'inline-block';
+        if (mlb) mlb.style.display = 'inline-block';
+    } else {
+        loadListings();
+    }
 });
 
 // ============ ORGANİZATÖR YARIŞLARI ============

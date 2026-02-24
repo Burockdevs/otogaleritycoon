@@ -285,8 +285,9 @@
             <span class="sidebar-icon"><i class="fa-solid fa-car"></i></span><span class="sidebar-label">Galerim</span>
         </button>
         <button class="sidebar-btn" data-page="listings" onclick="navigateTo('listings')">
-            <span class="sidebar-icon"><i class="fa-solid fa-list-check"></i></span><span
-                class="sidebar-label">İlanlarım</span>
+            <span class="sidebar-icon"><i class="fa-solid fa-list-check"></i></span>
+            <span class="sidebar-label">İlanlarım</span>
+            <span class="badge badge-error" id="listingsBadge" style="display:none">!</span>
         </button>
         <button class="sidebar-btn" data-page="favorites" onclick="navigateTo('favorites')">
             <span class="sidebar-icon"><i class="fa-solid fa-heart"></i></span><span
@@ -904,7 +905,9 @@
             <span class="nav-icon"><i class="fa-solid fa-car"></i></span><span class="nav-label">Galerim</span>
         </button>
         <button class="bottom-nav-btn" data-page="listings" onclick="navigateTo('listings')">
-            <span class="nav-icon"><i class="fa-solid fa-list-check"></i></span><span class="nav-label">İlanlarım</span>
+            <span class="nav-icon"><i class="fa-solid fa-list-check"></i></span>
+            <span class="nav-label">İlanlarım</span>
+            <span class="badge badge-error" id="mobileListingsBadge" style="display:none">!</span>
         </button>
         <button class="bottom-nav-btn" id="menuToggle" onclick="toggleMoreMenu(event)">
             <span class="nav-icon"><i class="fa-solid fa-bars"></i></span><span class="nav-label">Menü</span>
