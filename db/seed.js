@@ -1,4 +1,4 @@
-const { pool } = require('./connection');
+const { pool, testConnection } = require('./connection');
 const {
     BRANDS, COLORS, INTERIORS, INTERIOR_COLORS,
     FUEL_TYPES, TRANSMISSIONS, ENGINE_SIZES,
@@ -138,6 +138,12 @@ async function seedDatabase() {
     console.log('🚗 Veritabanı seed işlemi başlıyor...\n');
 
     try {
+        // Önce veritabanının var olduğundan emin ol
+        const isConnected = await testConnection();
+        if (!isConnected) {
+            throw new Error('Veritabanı bağlantısı sağlanamadığı için seed işlemi durduruldu.');
+        }
+
         // Mevcut verileri temizle
         await pool.query('SET FOREIGN_KEY_CHECKS = 0');
         await pool.query('TRUNCATE TABLE car_parts');
