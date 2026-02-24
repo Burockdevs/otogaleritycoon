@@ -1294,5 +1294,27 @@ router.post('/race/join', async (req, res) => {
     }
 });
 
+// =================== İSİM DEĞİŞTİRME ===================
+router.put('/change-name', async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name || name.trim() === '') {
+            return res.json({ success: false, error: 'İsim boş olamaz!' });
+        }
+        if (name.length > 50) {
+            return res.json({ success: false, error: 'İsim maksimum 50 karakter olabilir.' });
+        }
+
+        // HTML taglerini temizle
+        const sanitized = name.replace(/<[^>]*>?/gm, '').trim();
+
+        await pool.query('UPDATE player SET name = ? WHERE id = ?', [sanitized, req.playerId]);
+
+        res.json({ success: true, message: 'Profil isminiz başarıyla güncellendi!' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 module.exports = router;
 module.exports.checkAndUnlockAchievements = checkAndUnlockAchievements;

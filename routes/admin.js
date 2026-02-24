@@ -764,4 +764,49 @@ router.post('/events/top-seller', requireAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
+// =================== OYUNCU TAMAMEN SİL ===================
+router.delete('/players/:id', requireAdmin, async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        const playerId = req.params.id;
+
+        // Kontrol
+        const [players] = await connection.query('SELECT id, username FROM player WHERE id = ?', [playerId]);
+        if (players.length === 0) {
+            connection.release();
+            return res.json({ success: false, error: 'Oyuncu bulunamadı.' });
+        }
+
+        // Güvenli silme için Foreign Key geçici olarak devre dışı bırakılır
+        // Sadece bu silme transaction'ında geçerli olması için ayarlıyoruz
+        await connection.beginTransaction();
+        await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+
+        // Öfkeli kullanıcının bağımlılıklarını temizleme
+        await connection.query('DELETE FROM player_cars WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM listings WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM notifications WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM feedbacks WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM transactions WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM loan_requests WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM impounded_cars WHERE player_id = ?', [playerId]);
+        await connection.query('DELETE FROM offers WHERE listing_id IN (SELECT id FROM listings WHERE player_id = ?)', [playerId]);
+
+        // Oyuncuyu sil
+        await connection.query('DELETE FROM player WHERE id = ?', [playerId]);
+
+        await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+        await connection.commit();
+
+        res.json({ success: true, message: `Oyuncu (${players[0].username}) tamamen silindi.` });
+    } catch (err) {
+        await connection.rollback();
+        // Hata durumunda FK defaulta çevir
+        await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+        res.status(500).json({ success: false, error: err.message });
+    } finally {
+        connection.release();
+    }
+});
+
 module.exports = router;

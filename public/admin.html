@@ -1392,10 +1392,23 @@
                     <button class="admin-btn sm premium" onclick="openGiveCarModal(${p.id})" title="Araç"><i class="fa-solid fa-car"></i></button>
                     <button class="admin-btn sm ghost" onclick="openNotifyModal(${p.id})" title="Bildirim"><i class="fa-solid fa-envelope"></i></button>
                     <button class="admin-btn sm ${p.is_banned ? 'success' : 'danger'}" onclick="openRestrictionModal(${p.id}, '${esc(p.username)}', ${p.is_banned})" title="Engellemeler">${p.is_banned ? '<i class="fa-solid fa-user-check"></i>' : '<i class="fa-solid fa-gavel"></i>'}</button>
+                    <button class="admin-btn sm danger" onclick="deletePlayer(${p.id}, '${esc(p.username)}')" title="Kullanıcıyı Sil"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
             renderPagination('playersPagination', r.totalPages, page, 'loadPlayers');
+        }
+
+        async function deletePlayer(id, username) {
+            if (!confirm(`DİKKAT! '${username}' adlı oyuncuyu ve bu oyuncuya ait TÜM ilanları, araçları ve geçmişi kalıcı olarak silmek istediğinize emin misiniz?\nBu işlem geri alınamaz!`)) return;
+
+            const r = await fetch(`${API}/players/${id}`, { method: 'DELETE' }).then(r => r.json());
+            if (r.success) {
+                alert(r.message);
+                loadPlayers(playerPage);
+            } else {
+                alert(r.error || 'Silme işlemi başarısız!');
+            }
         }
 
         // ============ LISTINGS ============

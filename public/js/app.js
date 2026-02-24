@@ -2207,7 +2207,7 @@ async function loadProfile() {
 
     c.innerHTML = `<div class="profile-grid">
         <div class="profile-card"><h3><i class="fa-solid fa-user-gear"></i> Oyuncu Bilgileri</h3>
-            <div class="profile-stat"><span class="profile-stat-label">İsim</span><span class="profile-stat-value">${p.name}</span></div>
+            <div class="profile-stat"><span class="profile-stat-label">İsim</span><span class="profile-stat-value">${p.name} <i class="fa-solid fa-pen" style="cursor:pointer; font-size:12px; margin-left:6px; color:var(--text-muted)" onclick="changeName('${p.name}')" title="İsmi Değiştir"></i></span></div>
             <div class="profile-stat"><span class="profile-stat-label">Bakiye</span><span class="profile-stat-value" style="color:var(--gold)">${fmtPrice(p.balance)}</span></div>
             <div class="profile-stat"><span class="profile-stat-label">Seviye</span><span class="profile-stat-value">${p.level}</span></div>
             <div class="profile-stat"><span class="profile-stat-label">XP</span><span class="profile-stat-value">${fmt(p.xp)}/${fmt(p.xp_needed)}</span></div>
@@ -2241,6 +2241,42 @@ async function loadProfile() {
         <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="logout()"><i class="fa-solid fa-door-open"></i> Çıkış Yap</button>
         </div>
     </div>`;
+}
+
+async function changeName(currentName) {
+    const { value: newName } = await Swal.fire({
+        title: 'İsminizi Değiştirin',
+        input: 'text',
+        inputValue: currentName,
+        inputLabel: 'Yeni İsminiz',
+        inputPlaceholder: 'Profilde görünecek isminiz...',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--accent)',
+        cancelButtonColor: 'var(--danger)',
+        confirmButtonText: 'Kaydet',
+        cancelButtonText: 'İptal',
+        inputValidator: (value) => {
+            if (!value) return 'İsim boş bırakılamaz!';
+            if (value.length > 50) return 'Maksimum 50 karakter kullanabilirsiniz.';
+        }
+    });
+
+    if (newName && newName !== currentName) {
+        try {
+            const res = await fetch('/api/player/change-name', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            }).then(r => r.json());
+
+            if (res.success) {
+                notify(res.message, 'success');
+                loadProfile(); // profili baştan çizer
+            } else {
+                notify(res.error || 'Hata oluştu!', 'error');
+            }
+        } catch (e) { console.error(e); }
+    }
 }
 
 async function showBusinessReviews() {
