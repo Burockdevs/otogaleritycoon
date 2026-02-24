@@ -1,9 +1,10 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'your_password',
+    password: process.env.DB_PASSWORD || 'v2e@yh3PGrp7NhN',
     database: process.env.DB_NAME || 'galeri_simulator',
     waitForConnections: true,
     connectionLimit: 10,
@@ -17,7 +18,7 @@ const pool = mysql.createPool({
 async function testConnection() {
     try {
         // Güvenlik amaçlı db'yi önceden oluştur
-        const tempConn = await mysql.createConnection({ host: process.env.DB_HOST || 'localhost', user: process.env.DB_USER || 'root', password: process.env.DB_PASS || 'v2e@yh3PGrp7NhN' });
+        const tempConn = await mysql.createConnection({ host: process.env.DB_HOST || 'localhost', user: process.env.DB_USER || 'root', password: process.env.DB_PASSWORD || 'v2e@yh3PGrp7NhN' });
         await tempConn.query("CREATE DATABASE IF NOT EXISTS galeri_simulator DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         await tempConn.end();
 
