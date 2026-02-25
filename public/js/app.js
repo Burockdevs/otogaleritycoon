@@ -1617,8 +1617,8 @@ async function repairPart(pcId, partId) {
     if (r.success) {
         notify(r.message, 'success');
         updateFromResponse(r);
+        await loadMyCars(true);
         openServiceModal(pcId);
-        loadMyCars(true);
     }
     else notify(r.error, 'error');
 }
@@ -1630,8 +1630,8 @@ async function washCar(pcId) {
     if (r.success) {
         notify(r.message, 'success');
         updateFromResponse(r);
+        await loadMyCars(true);
         openServiceModal(pcId);
-        loadMyCars(true);
     }
     else notify(r.error, 'error');
 }
@@ -1642,8 +1642,8 @@ async function engineSwap(pcId) {
     if (r.success) {
         notify(r.message, 'success');
         updateFromResponse(r);
+        await loadMyCars(true);
         openServiceModal(pcId);
-        loadMyCars(true);
     }
     else notify(r.error, 'error');
 }
