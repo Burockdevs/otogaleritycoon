@@ -520,5 +520,6 @@ module.exports = {
     calculateWashCost,
     calculateMotorRepairCost,
     calculateLoanLimit,
-    calculateInterestRate
+    calculateInterestRate,
+    calculateAppraisalValue
 };
