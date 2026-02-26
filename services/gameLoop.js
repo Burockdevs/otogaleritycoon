@@ -251,9 +251,9 @@ async function startJunkyardRestockLoop() {
         const [countRes] = await pool.query("SELECT COUNT(*) as c FROM cars WHERE owner_type='junkyard' AND is_available=1");
         const currentCount = countRes[0].c;
 
-        // Max 100 aracı aşma, fazlalıkları sil
-        if (currentCount > 100) {
-            const excess = currentCount - 100;
+        // Max 200 aracı aşma, fazlalıkları sil
+        if (currentCount > 200) {
+            const excess = currentCount - 200;
             // SQLite/MySQL multi-table DELETE with LIMIT is not standard and often fails or works differently.
             // We should get the IDs of the cars to delete first.
             const [toDelete] = await pool.query(`SELECT id FROM cars WHERE owner_type='junkyard' AND is_available=1 ORDER BY created_at ASC LIMIT ?`, [excess]);
@@ -266,9 +266,9 @@ async function startJunkyardRestockLoop() {
             }
         }
 
-        // Her döngüde 2-3 araç ekle (max 100'e kadar)
-        if (currentCount < 100) {
-            const toAdd = Math.min(Math.floor(Math.random() * 2) + 2, 100 - currentCount); // 2-3 araç
+        // Her döngüde 4-6 araç ekle (max 200'e kadar)
+        if (currentCount < 200) {
+            const toAdd = Math.min(Math.floor(Math.random() * 3) + 4, 200 - currentCount); // 4-6 araç
 
             for (let j = 0; j < toAdd; j++) {
                 // Doğrudan veritabanındaki rastgele bir markayı ve modelini seçelim
@@ -336,8 +336,8 @@ async function addRandomCarToMarket(forceCheap = false) {
         const m = models[0];
         const year = randomBetween(2010, 2025);
         const km = randomBetween(0, 300000);
-        const dmg = forceCheap ? randomFrom(DAMAGE_STATUSES.filter(d => ['Çizik', 'Hasarlı', 'Değişen', 'Boyalı'].includes(d.status))).status : randomFrom(DAMAGE_STATUSES).status || 'Hasarsız';
-        const eng = forceCheap ? randomFrom(ENGINE_STATUSES.filter(e => ['Orta', 'Kötü'].includes(e.status))).status : randomFrom(ENGINE_STATUSES).status || 'İyi';
+        const dmg = forceCheap ? randomFrom(DAMAGE_STATUSES.filter(d => ['Çizik', 'Hasarlı', 'Değişen', 'Boyalı'].includes(d.status))).status : (Math.random() < 0.30 ? 'Hasarsız' : randomFrom(DAMAGE_STATUSES).status || 'Hasarsız');
+        const eng = forceCheap ? randomFrom(ENGINE_STATUSES.filter(e => ['Orta', 'Kötü'].includes(e.status))).status : (Math.random() < 0.35 ? 'İyi' : randomFrom(ENGINE_STATUSES).status || 'İyi');
         let price = calculatePrice(m.base_price, year, km, dmg, eng, m.tier);
         // Hasar durumuna göre kademeli minimum fiyat
         const minPrices = { 'Hasarsız': 60000, 'Çizik': 45000, 'Boyalı': 40000, 'Değişen': 35000, 'Hasarlı': 25000, 'Pert': 15000 };

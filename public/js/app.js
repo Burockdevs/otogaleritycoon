@@ -482,7 +482,7 @@ function translateTransactionDesc(desc) {
     const dLower = desc.toLowerCase();
     const translations = {
         'loan_payment': 'ÖDEME',
-        'income': 'GELİR',
+        'income': 'ÖDÜL',
         'expense': 'GİDER',
         'market_sell': 'Pazaryeri Satışı',
         'car_buy': 'Araç Alımı',
@@ -752,7 +752,7 @@ function updateFromResponse(r) {
 
 // ============ DAMAGE HELPERS ============
 function dmgBadge(s) {
-    const m = { 'Hasarsız': 'hasarsiz', 'Çizik': 'cizik', 'Boyalı': 'boyali', 'Değişen': 'degisen', 'Hasarlı': 'hasarli' };
+    const m = { 'Hasarsız': 'hasarsiz', 'Çizik': 'cizik', 'Boyalı': 'boyali', 'Değişen': 'degisen', 'Hasarlı': 'hasarli', 'Pert': 'pert' };
     return `<span class="car-badge badge-${m[s] || 'hasarsiz'}">${s}</span>`;
 }
 function partClass(s) {
@@ -1252,7 +1252,10 @@ async function openSellModal(pcId) {
 
     const mv = carObj.price;
     const appraisal = Math.round(mv * (1.1 + (carObj.engine_status === 'Mükemmel' ? 0.15 : 0.05)));
-    const instantPrice = Math.round(carObj.buy_price * 1.03);
+    const baseAllowedValue = Math.max(mv, carObj.buy_price, appraisal);
+    const maxNormalPrice = Math.round(baseAllowedValue * 1.35);
+    const maxInstallmentPrice = Math.round(baseAllowedValue * 1.50);
+    const instantPrice = Math.round(carObj.buy_price * 1.08);
     const instantProfit = instantPrice - carObj.buy_price;
 
     // Günlük instant-sell bilgisini al
@@ -1289,6 +1292,16 @@ async function openSellModal(pcId) {
                 <div style="display:flex;justify-content:space-between">
                     <span>Önerilen Max Fiyat:</span>
                     <strong style="color:var(--success)">${fmtPrice(appraisal)}</strong>
+                </div>
+                <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                        <span><i class="fa-solid fa-lock"></i> Nakit Max:</span>
+                        <strong style="color:var(--warning)">${fmtPrice(maxNormalPrice)}</strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between">
+                        <span><i class="fa-solid fa-lock"></i> Taksitli Max:</span>
+                        <strong style="color:var(--warning)">${fmtPrice(maxInstallmentPrice)}</strong>
+                    </div>
                 </div>
             </div>
 
@@ -1566,23 +1579,32 @@ async function openServiceModal(pcId) {
             <!-- Sol: Parça Tamiri -->
             <div class="detail-section">
                 <div class="detail-section-title"><i class="fa-solid fa-gears"></i> Parça Tamiri</div>
-                ${damagedParts.length ? `<button class="btn btn-warning w-full" style="margin-bottom:12px;font-weight:700" onclick="repairAll(${pcId})">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Tümünü Tamir Et (${damagedParts.length} parça)
-                </button>` : ''}
+                ${damagedParts.length ? (() => {
+            let totalRepairCost = 0;
+            damagedParts.forEach(p => {
+                let bc = car.price * 0.02;
+                const sM2 = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
+                bc *= (sM2[p.status] || 1);
+                totalRepairCost += Math.round(Math.max(bc * 1.5, 1000));
+            });
+            return `<button class="btn btn-warning w-full" style="margin-bottom:12px;font-weight:700" onclick="repairAll(${pcId})">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tümünü Tamir Et (${damagedParts.length} parça ~ ${fmtPrice(totalRepairCost)})
+                    </button>`;
+        })() : ''}
                 <div id="servicePartsList" style="max-height:300px;overflow-y:auto;padding-right:5px">
                     ${damagedParts.length ? damagedParts.map(p => {
-        let baseCost = car.price * 0.02;
-        const sM = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
-        baseCost *= (sM[p.status] || 1);
-        const estCost = Math.round(Math.max(baseCost * 1.5, 1000));
-        return `
+            let baseCost = car.price * 0.02;
+            const sM = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
+            baseCost *= (sM[p.status] || 1);
+            const estCost = Math.round(Math.max(baseCost * 1.5, 1000));
+            return `
                             <div class="service-part-item" style="margin-bottom:10px;padding:12px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border)">
                                 <div style="font-weight:600;font-size:13px;margin-bottom:6px">${p.part_name} <span class="part-status ${partClass(p.status)}" style="font-size:10px">(${p.status})</span></div>
                                 <button class="btn btn-sm btn-success w-full" onclick="repairPart(${pcId},${p.id})">
                                     <i class="fa-solid fa-wrench"></i> Tamir Et (~${fmtPrice(estCost)})
                                 </button>
                             </div>`;
-    }).join('') : '<p style="color:var(--text-muted);font-size:12px">Tüm parçalar sağlam!</p>'}
+        }).join('') : '<p style="color:var(--text-muted);font-size:12px">Tüm parçalar sağlam!</p>'}
                 </div>
             </div>
 
@@ -1788,7 +1810,7 @@ async function loadBank() {
             <div style="background:var(--bg-input); border-radius:8px; border:1px solid var(--border); max-height:400px; overflow-y:auto;">
                 ${listHTML}
             </div>
-            <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:12px;"><i class="fa-solid fa-circle-info"></i> Taksit ödemeleri her oyun gününde otomatik olarak kasanıza eklenir.</p>
+            <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:12px;"><i class="fa-solid fa-circle-info"></i> Taksit ödemeleri her 30 oyun gününde otomatik olarak kasanıza eklenir.</p>
         </div>`;
     }
 
@@ -2291,8 +2313,8 @@ async function loadProfile() {
         </div>
         <div class="profile-card"><h3><i class="fa-solid fa-receipt"></i> Son İşlemler</h3>
             ${transactions.length ? transactions.map(t => {
-        const typeMap = { 'sell': 'SATIŞ', 'sell_installment': 'TAKSİTLİ SATIŞ', 'buy': 'ALIŞ', 'loan': 'KREDİ', 'admin': 'SİSTEM', 'installment': 'TAKSİT', 'expense': 'GİDER' };
-        const tc = t.type === 'sell' ? 'sell' : t.type === 'loan' ? 'loan' : 'buy';
+        const typeMap = { 'sell': 'SATIŞ', 'sell_installment': 'TAKSİTLİ SATIŞ', 'buy': 'ALIŞ', 'loan': 'KREDİ', 'admin': 'SİSTEM', 'installment': 'TAKSİT', 'expense': 'GİDER', 'income': 'ÖDÜL' };
+        const tc = t.type === 'sell' ? 'sell' : t.type === 'income' ? 'sell' : t.type === 'loan' ? 'loan' : 'buy';
         return `<div class="transaction-item"><div><span class="transaction-type type-${tc}">${typeMap[t.type] || t.type.toUpperCase()}</span> ${t.description}</div><span style="font-weight:700">${fmtPrice(t.amount)}</span></div>`;
     }).join('') : '<div style="text-align:center; padding:10px; color:var(--text-muted); font-size:13px;">Henüz işlem yok</div>'}
         <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="logout()"><i class="fa-solid fa-door-open"></i> Çıkış Yap</button>
@@ -2301,39 +2323,19 @@ async function loadProfile() {
 }
 
 async function changeName(currentName) {
-    const { value: newName } = await Swal.fire({
-        title: 'İsminizi Değiştirin',
-        input: 'text',
-        inputValue: currentName,
-        inputLabel: 'Yeni İsminiz',
-        inputPlaceholder: 'Profilde görünecek isminiz...',
-        showCancelButton: true,
-        confirmButtonColor: 'var(--accent)',
-        cancelButtonColor: 'var(--danger)',
-        confirmButtonText: 'Kaydet',
-        cancelButtonText: 'İptal',
-        inputValidator: (value) => {
-            if (!value) return 'İsim boş bırakılamaz!';
-            if (value.length > 50) return 'Maksimum 50 karakter kullanabilirsiniz.';
+    const newName = prompt('Yeni isminizi girin (max 50 karakter):', currentName);
+    if (!newName || newName.trim() === '' || newName === currentName) return;
+    if (newName.length > 50) { notify('İsim maksimum 50 karakter olabilir!', 'error'); return; }
+
+    try {
+        const res = await post('/api/player/change-name', { name: newName.trim() });
+        if (res.success) {
+            notify(res.message, 'success');
+            loadProfile();
+        } else {
+            notify(res.error || 'Hata oluştu!', 'error');
         }
-    });
-
-    if (newName && newName !== currentName) {
-        try {
-            const res = await fetch('/api/player/change-name', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName })
-            }).then(r => r.json());
-
-            if (res.success) {
-                notify(res.message, 'success');
-                loadProfile(); // profili baştan çizer
-            } else {
-                notify(res.error || 'Hata oluştu!', 'error');
-            }
-        } catch (e) { console.error(e); }
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function showBusinessReviews() {
@@ -2643,7 +2645,7 @@ async function loadLeaderboard() {
     window.leaderboardMyRank = myRank;
 
     const rankHTML = myRank ? `<div class="my-rank-card" id="myRankCard">
-            <span class="my-rank-label">Senin Sıralamanın</span>
+            <span class="my-rank-label">Senin Sıralaman</span>
             <div class="my-rank-info">
                 <span class="my-rank-pos">#${myRank.prestige_rank}</span>
                 <span class="my-rank-name">${myRank.username}</span>
@@ -2687,7 +2689,7 @@ function switchLeaderboardTab(type, e) {
     if (rankCard && myRank) {
         const val = cfg.valueKey === 'total_profit' ? fmtPrice(myRank[cfg.valueKey]) : fmt(myRank[cfg.valueKey]);
         rankCard.innerHTML = `
-            <span class="my-rank-label">Senin Sıralamanın</span>
+            <span class="my-rank-label">Senin Sıralaman</span>
             <div class="my-rank-info">
                 <span class="my-rank-pos">#${myRank[cfg.rankKey]}</span>
                 <span class="my-rank-name">${myRank.username}</span>

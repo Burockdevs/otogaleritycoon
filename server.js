@@ -71,7 +71,7 @@ app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 // ============ GÜVENLİK: Genel Rate Limiter (DDoS Koruması) ============
 const generalLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
-    max: 800,
+    max: 1500,
     standardHeaders: true,
     legacyHeaders: false,
     validate: { default: false }, // IPv6 validation uyarısını sustur (trust proxy aktif)

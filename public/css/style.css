@@ -928,6 +928,13 @@ body:has(.sidebar.collapsed) .main-content {
     border: 1px solid var(--gold);
 }
 
+.badge-pert {
+    background: rgba(127, 29, 29, 0.5);
+    color: #fca5a5;
+    border: 1px solid #dc2626;
+    font-weight: 800;
+}
+
 .seller-badge {
     position: absolute;
     top: 6px;
