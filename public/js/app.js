@@ -1255,6 +1255,8 @@ async function openSellModal(pcId) {
     const baseAllowedValue = Math.max(mv, carObj.buy_price, appraisal);
     const maxNormalPrice = Math.round(baseAllowedValue * 1.35);
     const maxInstallmentPrice = Math.round(baseAllowedValue * 1.50);
+    window._sellMaxNormal = maxNormalPrice;
+    window._sellMaxInstallment = maxInstallmentPrice;
     const instantPrice = Math.round(carObj.buy_price * 1.08);
     const instantProfit = instantPrice - carObj.buy_price;
 
@@ -1459,6 +1461,12 @@ function closeSellModal() { document.getElementById('sellModal').classList.remov
 async function submitSell(pcId) {
     const price = getRawValue('sellPrice');
     if (!price || price <= 0) return notify('Geçerli bir fiyat girin!', 'error');
+
+    // Frontend max fiyat kontrolu
+    const maxAllowed = selectedInstallmentMonths > 0 ? window._sellMaxInstallment : window._sellMaxNormal;
+    if (maxAllowed && price > maxAllowed) {
+        return notify(`Maksimum ${selectedInstallmentMonths > 0 ? 'taksitli' : 'nakit'} satış fiyatı ${fmtPrice(maxAllowed)} olabilir!`, 'error');
+    }
 
     const body = { player_car_id: pcId, listing_type: 'normal', asking_price: price, installment_months: selectedInstallmentMonths };
     const r = await post('/api/market/sell', body);
