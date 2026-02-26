@@ -1505,11 +1505,10 @@ function updateProb() {
 
 function calcProb(off, list, mv) {
     if (off >= list) return 100;
-    if (off >= mv * 0.95) return 92;
-    const ratio = off / mv;
-    if (ratio < 0.65) return 0;
-    let p = (ratio - 0.65) / 0.30 * 92;
-    if (list > mv * 1.3) p += 5;
+    const ratio = off / list;
+    if (ratio >= 0.95) return 92;
+    if (ratio < 0.58) return 0;
+    let p = (ratio - 0.58) / (0.95 - 0.58) * 92;
     return Math.round(Math.max(0, Math.min(95, p)));
 }
 function closeBargainModal() { document.getElementById('bargainModal').classList.remove('active'); }
