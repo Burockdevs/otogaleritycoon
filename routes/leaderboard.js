@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
             SELECT id, username, level, prestige_score, total_profit, total_sales
             FROM player 
             ORDER BY prestige_score DESC 
-            LIMIT 50
+            LIMIT 10
         `);
 
         // Kâr sıralaması
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
             SELECT id, username, level, prestige_score, total_profit
             FROM player 
             ORDER BY total_profit DESC 
-            LIMIT 50
+            LIMIT 25
         `);
 
         // Seviye sıralaması
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
             SELECT id, username, level, prestige_score, xp
             FROM player 
             ORDER BY level DESC, xp DESC 
-            LIMIT 50
+            LIMIT 25
         `);
 
         // Satış sıralaması
@@ -36,15 +36,18 @@ router.get('/', async (req, res) => {
             SELECT id, username, level, prestige_score, total_sales
             FROM player 
             ORDER BY total_sales DESC 
-            LIMIT 50
+            LIMIT 25
         `);
 
-        // Oyuncunun kendi sıralaması
+        // Oyuncunun her kategorideki sıralaması
         let myRank = null;
         if (playerId) {
             const [rankResult] = await pool.query(`
                 SELECT id, username, level, prestige_score, total_profit, total_sales,
-                    (SELECT COUNT(*) + 1 FROM player p2 WHERE p2.prestige_score > p.prestige_score) as \`rank\`
+                    (SELECT COUNT(*) + 1 FROM player p2 WHERE p2.prestige_score > p.prestige_score) as prestige_rank,
+                    (SELECT COUNT(*) + 1 FROM player p2 WHERE p2.total_profit > p.total_profit) as profit_rank,
+                    (SELECT COUNT(*) + 1 FROM player p2 WHERE p2.level > p.level OR (p2.level = p.level AND p2.xp > p.xp)) as level_rank,
+                    (SELECT COUNT(*) + 1 FROM player p2 WHERE p2.total_sales > p.total_sales) as sales_rank
                 FROM player p
                 WHERE id = ?
             `, [playerId]);

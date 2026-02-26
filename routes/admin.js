@@ -244,17 +244,20 @@ router.post('/players/:id/restrictions', requireAdmin, async (req, res) => {
 
         let untilDate = null;
         if (durationHours === 'permanent') {
-            untilDate = '2099-12-31 23:59:59';
+            untilDate = null; // Kalıcı ban: ban_until NULL + is_banned=1
         } else if (durationHours === 0) {
             untilDate = null; // Kaldır
         } else {
             const d = new Date();
             d.setHours(d.getHours() + parseInt(durationHours));
-            untilDate = d.toISOString().slice(0, 19).replace('T', ' ');
+            const pad = (n) => String(n).padStart(2, '0');
+            untilDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         }
 
         if (type === 'login') {
-            await pool.query('UPDATE player SET is_banned = ?, ban_until = ? WHERE id = ?', [untilDate ? 1 : 0, untilDate, playerId]);
+            const isBanned = (durationHours === 'permanent' || untilDate) ? 1 : 0;
+            const banReason = isBanned ? (reason || 'Nedeni belirtilmedi') : null;
+            await pool.query('UPDATE player SET is_banned = ?, ban_until = ?, ban_reason = ? WHERE id = ?', [isBanned, untilDate, banReason, playerId]);
         } else if (type === 'trade') {
             await pool.query('UPDATE player SET trade_ban_until = ? WHERE id = ?', [untilDate, playerId]);
         } else {
@@ -789,7 +792,7 @@ router.delete('/players/:id', requireAdmin, async (req, res) => {
         await connection.query('DELETE FROM feedbacks WHERE player_id = ?', [playerId]);
         await connection.query('DELETE FROM transactions WHERE player_id = ?', [playerId]);
         await connection.query('DELETE FROM loan_requests WHERE player_id = ?', [playerId]);
-        await connection.query('DELETE FROM impounded_cars WHERE player_id = ?', [playerId]);
+        try { await connection.query('DELETE FROM impounded_cars WHERE player_id = ?', [playerId]); } catch (e) { /* tablo yoksa yoksay */ }
         await connection.query('DELETE FROM offers WHERE listing_id IN (SELECT id FROM listings WHERE player_id = ?)', [playerId]);
 
         // Oyuncuyu sil

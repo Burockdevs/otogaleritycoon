@@ -166,8 +166,8 @@ async function generateOfferPrice(askingPrice, marketValue, npcType, carData, pl
     // Temel: piyasa değerine göre oranlar
     switch (npcType) {
         case 'pazarlikci':
-            minPercent = 0.75;
-            maxPercent = 0.90;
+            minPercent = 0.55;
+            maxPercent = 0.75;
             messages = [
                 "Fiyat biraz yüksek geldi, pazarlık sünnettir.",
                 "Bu paraya daha iyi araç bulurum ama son teklifimi vereyim.",
@@ -178,8 +178,8 @@ async function generateOfferPrice(askingPrice, marketValue, npcType, carData, pl
             ];
             break;
         case 'comert':
-            minPercent = 0.90;
-            maxPercent = 1.03;
+            minPercent = 0.95;
+            maxPercent = 1.10;
             messages = [
                 "Aracı çok beğendim, hakkını verelim.",
                 "Tam aradığım araç, fiyatını konuşalım.",
@@ -301,10 +301,10 @@ async function generateOfferPrice(askingPrice, marketValue, npcType, carData, pl
 
     // Şahsi Yatırım Kâr Sınırı: Bir teklif oyuncunun toplam yatırımının (alış + tamir masrafları) en fazla %25'i kadar kârlı olabilir
     if (playerBuyPrice > 0) {
-        const maxInvestedOffer = Math.round(playerBuyPrice * 1.25);
+        const maxInvestedOffer = Math.round(playerBuyPrice * 1.45);
         if (offerPrice > maxInvestedOffer) {
-            // Tam olarak hep aynı sayı çıkmasın diye %0 ile %2.5 arası ufak bir varyasyon (aşağı yönlü) uyguluyoruz
-            const variance = 1.00 - (Math.random() * 0.025);
+            // Tam olarak hep aynı sayı çıkmasın diye %0 ile %5 arası ufak bir varyasyon (aşağı yönlü) uyguluyoruz
+            const variance = 1.00 - (Math.random() * 0.05);
             offerPrice = Math.round(maxInvestedOffer * variance);
         }
     }
@@ -413,7 +413,8 @@ function evaluateBargain(offerPrice, listedPrice, marketValue, npcType = 'normal
         return { accepted: true, finalPrice: listedPrice, message: 'Bu fiyata anlaştık, hayırlı olsun!' };
     }
 
-    const offerRatio = offerPrice / marketValue;
+    // Teklifi SATIŞ FİYATINA göre değerlendir (piyasa değerine değil)
+    const offerRatio = offerPrice / listedPrice;
 
     // NPC tipine göre tolerans ayarları
     let minRatio = 0.65; // Baz
@@ -438,11 +439,11 @@ function evaluateBargain(offerPrice, listedPrice, marketValue, npcType = 'normal
     }
 
     // Otomatik kabul eşiği
-    if (offerPrice >= marketValue * autoAcceptRatio) {
+    if (offerRatio >= autoAcceptRatio) {
         return { accepted: true, finalPrice: offerPrice, message: acceptMsg };
     }
 
-    // %75-95 arası - olasılıkla kabul
+    // minRatio ile autoAcceptRatio arası - olasılıkla kabul
     const chanceBase = minRatio;
     const chanceRange = autoAcceptRatio - chanceBase;
 
@@ -459,9 +460,9 @@ function evaluateBargain(offerPrice, listedPrice, marketValue, npcType = 'normal
         }
 
         // Karşı teklif - listedPrice'ı geçmemeli
-        let priceTarget = marketValue;
-        if (npcType === 'pazarlikci') priceTarget = Math.max(marketValue, listedPrice * 0.95);
-        if (npcType === 'comert') priceTarget = marketValue * 0.92;
+        let priceTarget = listedPrice;
+        if (npcType === 'pazarlikci') priceTarget = listedPrice * 0.98;
+        if (npcType === 'comert') priceTarget = listedPrice * 0.92;
 
         const counter = Math.min(listedPrice, Math.round(offerPrice + (priceTarget - offerPrice) * (0.4 + Math.random() * 0.3)));
 
@@ -475,8 +476,8 @@ function evaluateBargain(offerPrice, listedPrice, marketValue, npcType = 'normal
     }
 
     // Red ama karşı teklif
-    const counterRatio = npcType === 'pazarlikci' ? 0.90 : (npcType === 'comert' ? 0.80 : 0.85);
-    const counter = Math.min(listedPrice, Math.round(marketValue * (counterRatio + Math.random() * 0.10)));
+    const counterRatio = npcType === 'pazarlikci' ? 0.95 : (npcType === 'comert' ? 0.85 : 0.90);
+    const counter = Math.min(listedPrice, Math.round(listedPrice * (counterRatio + Math.random() * 0.05)));
     return { accepted: false, counterOffer: counter, message: `Bu fiyata olmaz. ${counter.toLocaleString('tr-TR')}₺'den aşağı düşmem.` };
 }
 

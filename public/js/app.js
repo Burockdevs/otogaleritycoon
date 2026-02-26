@@ -1566,6 +1566,9 @@ async function openServiceModal(pcId) {
             <!-- Sol: Parça Tamiri -->
             <div class="detail-section">
                 <div class="detail-section-title"><i class="fa-solid fa-gears"></i> Parça Tamiri</div>
+                ${damagedParts.length ? `<button class="btn btn-warning w-full" style="margin-bottom:12px;font-weight:700" onclick="repairAll(${pcId})">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Tümünü Tamir Et (${damagedParts.length} parça)
+                </button>` : ''}
                 <div id="servicePartsList" style="max-height:300px;overflow-y:auto;padding-right:5px">
                     ${damagedParts.length ? damagedParts.map(p => {
         let baseCost = car.price * 0.02;
@@ -1614,6 +1617,18 @@ function selectMechanic(type, pcId) {
 
 async function repairPart(pcId, partId) {
     const r = await post('/api/player/repair/' + pcId, { part_id: partId });
+    if (r.success) {
+        notify(r.message, 'success');
+        updateFromResponse(r);
+        await loadMyCars(true);
+        openServiceModal(pcId);
+    }
+    else notify(r.error, 'error');
+}
+
+async function repairAll(pcId) {
+    if (!await showConfirm('Tüm hasarlı parçalar tamir edilsin mi?')) return;
+    const r = await post('/api/player/repair-all/' + pcId);
     if (r.success) {
         notify(r.message, 'success');
         updateFromResponse(r);
@@ -1674,6 +1689,7 @@ async function loadListings() {
                         <div style="text-align:right">
                             <div class="offer-price">${fmtPrice(o.offer_price)}</div>
                             <div style="font-size:11px; font-weight:bold; color:${color}">${perc >= 0 ? '+' : ''}${perc}%</div>
+                            ${l.installment_months > 0 ? `<div style="font-size:10px; color:var(--accent); margin-top:2px"><i class="fa-solid fa-credit-card"></i> Aylık: ${fmtPrice(Math.round(o.offer_price / l.installment_months))} × ${l.installment_months} ay</div>` : ''}
                         </div>
                         <div class="offer-actions">
                             <button class="btn btn-sm btn-success" onclick="acceptOffer(${l.id},${o.id})"><i class="fa-solid fa-check"></i> Kabul</button>
@@ -2624,6 +2640,16 @@ async function loadLeaderboard() {
 
     const data = r.data;
     const myRank = r.myRank;
+    window.leaderboardMyRank = myRank;
+
+    const rankHTML = myRank ? `<div class="my-rank-card" id="myRankCard">
+            <span class="my-rank-label">Senin Sıralamanın</span>
+            <div class="my-rank-info">
+                <span class="my-rank-pos">#${myRank.prestige_rank}</span>
+                <span class="my-rank-name">${myRank.username}</span>
+                <span class="my-rank-value"><i class="fa-solid fa-star"></i> ${fmt(myRank.prestige_score)}</span>
+            </div>
+        </div>` : '';
 
     c.innerHTML = `
             <div class="leaderboard-tabs">
@@ -2632,15 +2658,7 @@ async function loadLeaderboard() {
             <button class="lb-tab" onclick="switchLeaderboardTab('level', event)"><i class="fa-solid fa-arrow-trend-up"></i> Seviye</button>
             <button class="lb-tab" onclick="switchLeaderboardTab('sales', event)"><i class="fa-solid fa-car-side"></i> Satış</button>
         </div>
-            ${myRank ? `<div class="my-rank-card">
-            <span class="my-rank-label">Senin Sıralamanın</span>
-            <div class="my-rank-info">
-                <span class="my-rank-pos">#${myRank.rank}</span>
-                <span class="my-rank-name">${myRank.username}</span>
-                <span class="my-rank-value"><i class="fa-solid fa-star"></i> ${fmt(myRank.prestige_score)}</span>
-            </div>
-        </div>` : ''
-        }
+            ${rankHTML}
         <div class="leaderboard-list" id="leaderboardList">
             ${renderLeaderboardList(data.prestige, 'prestige_score', '<i class="fa-solid fa-star"></i>')}
         </div>
@@ -2654,14 +2672,28 @@ function switchLeaderboardTab(type, e) {
     e.target.classList.add('active');
 
     const data = window.leaderboardData;
+    const myRank = window.leaderboardMyRank;
     const configs = {
-        prestige: { list: data.prestige, field: 'prestige_score', icon: '<i class="fa-solid fa-star"></i>' },
-        profit: { list: data.profit, field: 'total_profit', icon: '<i class="fa-solid fa-money-bill-wave"></i>' },
-        level: { list: data.level, field: 'level', icon: '<i class="fa-solid fa-arrow-trend-up"></i>' },
-        sales: { list: data.sales, field: 'total_sales', icon: '<img src="/img/logo1.png" style="height: 16px; width: auto; vertical-align: middle;">' }
+        prestige: { list: data.prestige, field: 'prestige_score', icon: '<i class="fa-solid fa-star"></i>', rankKey: 'prestige_rank', valueKey: 'prestige_score' },
+        profit: { list: data.profit, field: 'total_profit', icon: '<i class="fa-solid fa-money-bill-wave"></i>', rankKey: 'profit_rank', valueKey: 'total_profit' },
+        level: { list: data.level, field: 'level', icon: '<i class="fa-solid fa-arrow-trend-up"></i>', rankKey: 'level_rank', valueKey: 'level' },
+        sales: { list: data.sales, field: 'total_sales', icon: '<img src="/img/logo1.png" style="height: 16px; width: auto; vertical-align: middle;">', rankKey: 'sales_rank', valueKey: 'total_sales' }
     };
     const cfg = configs[type];
     document.getElementById('leaderboardList').innerHTML = renderLeaderboardList(cfg.list, cfg.field, cfg.icon);
+
+    // myRank kartını güncelle
+    const rankCard = document.getElementById('myRankCard');
+    if (rankCard && myRank) {
+        const val = cfg.valueKey === 'total_profit' ? fmtPrice(myRank[cfg.valueKey]) : fmt(myRank[cfg.valueKey]);
+        rankCard.innerHTML = `
+            <span class="my-rank-label">Senin Sıralamanın</span>
+            <div class="my-rank-info">
+                <span class="my-rank-pos">#${myRank[cfg.rankKey]}</span>
+                <span class="my-rank-name">${myRank.username}</span>
+                <span class="my-rank-value">${cfg.icon} ${val}</span>
+            </div>`;
+    }
 }
 
 function renderLeaderboardList(list, field, icon) {

@@ -7,11 +7,14 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD || 'v2e@yh3PGrp7NhN',
     database: process.env.DB_NAME || 'galeri_simulator',
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 50,
     queueLimit: 0,
     charset: 'utf8mb4',
     decimalNumbers: true,
-    multipleStatements: true
+    multipleStatements: true,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 30000,
+    idleTimeout: 60000
 });
 
 // Bağlantı testi

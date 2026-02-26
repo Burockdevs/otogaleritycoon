@@ -6881,3 +6881,291 @@ select.form-input {
     word-break: break-word;
     white-space: normal;
 }
+
+/* ============ MODAL (Static HTML Modals) ============ */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.modal .modal-content {
+    position: relative;
+    background: var(--bg-card-solid);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    z-index: 1;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ============ GLOBAL MOBİL UYUMLULUK ============ */
+
+/* Tüm elementlerde overflow koruması */
+.main-content,
+.page,
+.modal-content,
+.listing-card,
+.offer-item,
+.race-card,
+.dashboard-card,
+.admin-card {
+    overflow-x: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Uzun metinler taşmasın */
+.offer-name,
+.offer-message,
+.listing-title,
+.race-title,
+.race-desc,
+.page-header h1,
+.page-header p,
+.stat-value,
+.card-header h3,
+.hero-info h1 {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Tablolarda yatay scroll */
+table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+
+    /* Sidebar mobilde gizli */
+    .sidebar {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 12px 10px !important;
+    }
+
+    .seizure-banner {
+        left: 0 !important;
+    }
+
+    .xp-bar-container {
+        left: 0 !important;
+    }
+
+    /* Topbar istatistikleri mobilde küçült */
+    .stat-item {
+        padding: 4px 6px;
+    }
+
+    .stat-value {
+        font-size: 11px;
+    }
+
+    .stat-icon {
+        font-size: 12px;
+    }
+
+    .logo-text {
+        font-size: 14px;
+    }
+
+    /* Filtreler mobilde dikey yığılsın */
+    .filters-bar {
+        padding: 10px;
+    }
+
+    .filter-group {
+        flex-direction: column;
+    }
+
+    .filter-select,
+    .filter-input {
+        width: 100% !important;
+        min-width: unset;
+    }
+
+    /* Araç gridleri mobilde tek kolon */
+    .cars-grid,
+    .brands-grid,
+    .models-grid,
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* İlan kartları mobilde tam genişlik */
+    .listing-card {
+        padding: 12px;
+    }
+
+    .listing-prices {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .offer-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .offer-actions {
+        width: 100%;
+    }
+
+    .offer-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Yarış sayfası */
+    .race-card {
+        padding: 12px;
+    }
+
+    .race-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .race-header {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* Page header */
+    .page-header h1 {
+        font-size: 20px;
+    }
+
+    .page-header p {
+        font-size: 12px;
+    }
+
+    /* Dashboard hero */
+    .dashboard-hero {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .hero-info h1 {
+        font-size: 20px;
+    }
+
+    /* Modal mobilde tam genişlik */
+    .modal-content {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 5vh auto;
+        padding: 16px !important;
+    }
+
+    /* Leaderboard */
+    .leaderboard-tabs {
+        flex-wrap: wrap;
+    }
+
+    .lb-tab {
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        padding: 8px 6px;
+    }
+
+    .my-rank-card {
+        padding: 12px;
+    }
+
+    /* Liderlik listesi */
+    .lb-item {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    /* Banka sayfası */
+    .bank-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Profil */
+    .profile-container {
+        padding: 12px;
+        gap: 15px;
+    }
+
+    /* İllegal garaj mobilde */
+    .illegal-warning {
+        font-size: 12px;
+        padding: 10px;
+    }
+
+    /* Bildirimler */
+    .notif-item {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    /* Butonlar mobilde */
+    .btn {
+        font-size: 11px;
+        padding: 7px 12px;
+    }
+
+    .btn-sm {
+        font-size: 10px;
+        padding: 5px 8px;
+    }
+
+    /* Service modal grid */
+    .service-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Race page header mobilde */
+    #racesPage .page-header>div {
+        flex-direction: column !important;
+    }
+}

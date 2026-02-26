@@ -86,11 +86,14 @@ router.post('/login', async (req, res) => {
         if (player.is_banned) {
             if (player.ban_until && new Date() > new Date(player.ban_until)) {
                 // Ban süresi dolmuş
-                pool.query('UPDATE player SET is_banned = 0, ban_until = NULL WHERE id = ?', [player.id]).catch(() => { });
+                pool.query('UPDATE player SET is_banned = 0, ban_until = NULL, ban_reason = NULL WHERE id = ?', [player.id]).catch(() => { });
             } else {
                 let msg = 'Hesabınız yöneticiler tarafından kalıcı olarak yasaklanmıştır.';
                 if (player.ban_until) {
                     msg = `Hesabınız ${new Date(player.ban_until).toLocaleString('tr-TR')} tarihine kadar yasaklanmıştır.`;
+                }
+                if (player.ban_reason) {
+                    msg += `\n\nBan Sebebi: ${player.ban_reason}`;
                 }
                 return res.json({ success: false, error: msg });
             }

@@ -62,37 +62,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         crossorigin="anonymous">
 
-    <!-- MODAL: Join Race -->
-    <div class="modal" id="joinRaceModal" style="display:none">
-        <div class="modal-overlay" onclick="closeModal('joinRaceModal')"></div>
-        <div class="modal-content">
-            <div class="modal-header"
-                style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="font-size:18px; margin:0;"><i class="fa-solid fa-flag-checkered"></i> Yarışa Katıl</h2>
-                <button class="btn btn-sm btn-danger" onclick="closeJoinRaceModal()">X</button>
-            </div>
-            <div style="padding-top:10px">
-                <p style="margin-bottom:15px; color:var(--text-muted); font-size:14px;">Bu yarışa katılacak aracınızı
-                    seçin. Unutmayın, aracınızın gücü (HP/Tork) kazanma ihtimalinizi belirler ancak yarışlar <strong>her
-                        zaman risklidir</strong> (Araç hasar görebilir veya kaza yapabilir).</p>
-                <div class="form-group">
-                    <label>Yarış Aracı Seçin</label>
-                    <select id="joinRaceCarSelect"
-                        style="width:100%; padding:10px; background:var(--bg-input); color:white; border:1px solid var(--border); border-radius:4px;">
-                        <option value="">Araç Yükleniyor...</option>
-                    </select>
-                </div>
-                <input type="hidden" id="joinRaceId">
-                <div id="joinRaceFeeInfo" style="margin-top:15px; font-size:14px; color:var(--text-secondary);"></div>
-                <div class="modal-actions" style="margin-top:20px;">
-                    <button class="btn ghost" onclick="closeJoinRaceModal()">İptal</button>
-                    <button id="joinRaceBtn" class="btn primary" onclick="submitJoinRace()"><i
-                            class="fa-solid fa-flag-checkered"></i> Kaydı Tamamla</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"
         onerror="console.warn('Chart.js CDN yüklenemedi. Grafik özellikleri devre dışı.')"></script>
@@ -1198,6 +1167,38 @@
             document.getElementById('aboutModal').style.display = 'none';
         }
     </script>
+
+    <!-- MODAL: Join Race -->
+    <div class="modal" id="joinRaceModal">
+        <div class="modal-overlay" onclick="closeJoinRaceModal()"></div>
+        <div class="modal-content" style="max-width:500px">
+            <div class="modal-header"
+                style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:18px; margin:0;"><i class="fa-solid fa-flag-checkered"></i> Yarışa Katıl</h2>
+                <button class="btn btn-sm btn-danger" onclick="closeJoinRaceModal()">X</button>
+            </div>
+            <div style="padding-top:10px">
+                <p style="margin-bottom:15px; color:var(--text-muted); font-size:14px;">Bu yarışa katılacak aracınızı
+                    seçin. Aracınızın gücü (HP/Tork) kazanma ihtimalinizi belirler ancak yarışlar <strong>her
+                        zaman risklidir</strong>.</p>
+                <div class="form-group">
+                    <label>Yarış Aracı Seçin</label>
+                    <select id="joinRaceCarSelect"
+                        style="width:100%; padding:10px; background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border); border-radius:4px;">
+                        <option value="">Araç Yükleniyor...</option>
+                    </select>
+                </div>
+                <input type="hidden" id="joinRaceId">
+                <div id="joinRaceFeeInfo" style="margin-top:15px; font-size:14px; color:var(--text-secondary);"></div>
+                <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="btn btn-ghost" onclick="closeJoinRaceModal()">İptal</button>
+                    <button id="joinRaceBtn" class="btn btn-primary" onclick="submitJoinRace()"><i
+                            class="fa-solid fa-flag-checkered"></i> Kaydı Tamamla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>

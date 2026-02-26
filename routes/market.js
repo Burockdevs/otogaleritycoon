@@ -271,8 +271,8 @@ router.post('/sell', async (req, res) => {
         const baseAllowedValue = Math.max(marketValue, buyPrice, originalCarPrice, appraisal);
 
         // Bu değer üzerinden esneklik payı
-        const maxNormalPrice = Math.round(baseAllowedValue * 1.20); // Nakitte Max %20 kâr
-        const maxInstallmentPrice = Math.round(baseAllowedValue * 1.30); // Taksitli Max %30 kâr
+        const maxNormalPrice = Math.round(baseAllowedValue * 1.35); // Nakitte Max %35 kâr
+        const maxInstallmentPrice = Math.round(baseAllowedValue * 1.50); // Taksitli Max %50 kâr
 
         if (months === 0 && asking_price > maxNormalPrice) {
             return res.json({ success: false, error: `Sıkı Piyasa Kuralları: Nakit satışta maksimum ${maxNormalPrice.toLocaleString('tr-TR')}₺ isteyebilirsiniz.` });
@@ -646,7 +646,7 @@ router.post('/instant-sell', async (req, res) => {
             return res.json({ success: false, error: 'İlandaki aracı anında satamazsınız. Önce ilanı kaldırın.' });
         }
 
-        const profitRate = 1.03;
+        const profitRate = 1.08;
         const sellPrice = Math.round(pCar.original_buy_price * profitRate);
         const profit = sellPrice - pCar.original_buy_price;
 

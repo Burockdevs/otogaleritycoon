@@ -425,6 +425,70 @@ router.get('/mechanic-types', (req, res) => {
     res.json({ success: true, data: [] });
 });
 
+// =================== TÜMÜNÜ TAMİR ET ===================
+router.post('/repair-all/:playerCarId', async (req, res) => {
+    try {
+        const pid = req.playerId;
+
+        // İlan kontrolü
+        const [listing] = await pool.query('SELECT id FROM listings WHERE player_car_id = ? AND status = "active"', [req.params.playerCarId]);
+        if (listing.length > 0) return res.json({ success: false, error: 'İlandaki aracı tamir edemezsiniz. Önce ilanı kaldırın.' });
+
+        const [pCars] = await pool.query(
+            `SELECT pc.*, c.price, b.name as brand_name, m.name as model_name
+             FROM player_cars pc JOIN cars c ON pc.car_id=c.id
+             JOIN brands b ON c.brand_id=b.id JOIN models m ON c.model_id=m.id
+             WHERE pc.id=? AND pc.player_id=?`, [req.params.playerCarId, pid]
+        );
+        if (pCars.length === 0) return res.json({ success: false, error: 'Araç bulunamadı' });
+        const pCar = pCars[0];
+
+        // Hasarlı parçaları bul
+        const [damagedParts] = await pool.query(
+            "SELECT * FROM car_parts WHERE car_id=? AND status != 'Orijinal'",
+            [pCar.car_id]
+        );
+
+        if (damagedParts.length === 0) return res.json({ success: false, error: 'Tüm parçalar zaten orijinal durumda!' });
+
+        // Toplam maliyet hesapla
+        let totalCost = 0;
+        let totalValueIncrease = 0;
+        for (const part of damagedParts) {
+            totalCost += calculateRepairCost(part.status, pCar.price);
+            totalValueIncrease += calculateRepairValueIncrease(pCar.price, part.status);
+        }
+
+        const p = await getPlayer(pid);
+        if (p.balance < totalCost) return res.json({ success: false, error: `Yetersiz bakiye! Toplam tamir: ${totalCost.toLocaleString('tr-TR')}₺ | Bakiyeniz: ${p.balance.toLocaleString('tr-TR')}₺` });
+
+        // Tüm parçaları orijinale çevir
+        for (const part of damagedParts) {
+            await pool.query("UPDATE car_parts SET status='Orijinal', quality=100, is_original=1 WHERE id=?", [part.id]);
+        }
+
+        // Araç değerini güncelle
+        await pool.query('UPDATE cars SET price=price+?, damage_status=? WHERE id=?', [totalValueIncrease, 'Hasarsız', pCar.car_id]);
+        await pool.query('UPDATE player_cars SET buy_price = buy_price + ?, expenses = expenses + ? WHERE id = ?', [totalCost, totalCost, pCar.id]);
+        await pool.query('UPDATE player SET balance=balance-?, xp=xp+? WHERE id=?', [totalCost, damagedParts.length * 10, pid]);
+        await pool.query('INSERT INTO transactions (player_id,type,amount,description) VALUES (?,\"buy\",?,?)',
+            [pid, totalCost, `Toplu Tamir: ${damagedParts.length} parça`]);
+        await pool.query('INSERT INTO profit_history (player_id,type,amount,description) VALUES (?,\"expense\",?,?)',
+            [pid, totalCost, `Toplu Tamir: ${damagedParts.length} parça`]);
+
+        res.json({
+            success: true,
+            message: `${damagedParts.length} parça tamir edildi! <i class="fa-solid fa-wrench"></i> Toplam maliyet: ${totalCost.toLocaleString('tr-TR')}₺ | +${totalValueIncrease.toLocaleString('tr-TR')}₺ değer artışı`,
+            cost: totalCost,
+            valueIncrease: totalValueIncrease,
+            repairedCount: damagedParts.length,
+            player: await getPlayer(pid)
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // =================== BOYAMA ===================
 router.post('/paint/:playerCarId', async (req, res) => {
     try {
