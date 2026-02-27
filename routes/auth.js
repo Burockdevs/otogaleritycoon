@@ -84,13 +84,17 @@ router.post('/login', async (req, res) => {
 
         // Ban kontrolü
         if (player.is_banned) {
-            if (player.ban_until && new Date() > new Date(player.ban_until)) {
+            const now = new Date();
+            const banUntil = player.ban_until ? new Date(player.ban_until) : null;
+
+            if (banUntil && now > banUntil) {
                 // Ban süresi dolmuş
-                pool.query('UPDATE player SET is_banned = 0, ban_until = NULL, ban_reason = NULL WHERE id = ?', [player.id]).catch(() => { });
+                await pool.query('UPDATE player SET is_banned = 0, ban_until = NULL, ban_reason = NULL WHERE id = ?', [player.id]).catch(() => { });
+                player.is_banned = 0; // Yerel nesneyi güncelle ki giriş devam edebilsin
             } else {
                 let msg = 'Hesabınız yöneticiler tarafından kalıcı olarak yasaklanmıştır.';
-                if (player.ban_until) {
-                    msg = `Hesabınız ${new Date(player.ban_until).toLocaleString('tr-TR')} tarihine kadar yasaklanmıştır.`;
+                if (banUntil) {
+                    msg = `Hesabınız ${banUntil.toLocaleString('tr-TR')} tarihine kadar yasaklanmıştır.`;
                 }
                 if (player.ban_reason) {
                     msg += `\n\nBan Sebebi: ${player.ban_reason}`;
@@ -98,6 +102,7 @@ router.post('/login', async (req, res) => {
                 return res.json({ success: false, error: msg });
             }
         }
+
 
         // Şifre kontrolü
         const isValid = await bcrypt.compare(password, player.password_hash);

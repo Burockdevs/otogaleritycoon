@@ -479,6 +479,21 @@ CREATE TABLE installment_payments (
     FOREIGN KEY (seller_id) REFERENCES player(id) ON DELETE CASCADE
 );
 
+-- =================== OYUNCU FATURALARI ===================
+CREATE TABLE IF NOT EXISTS player_bills (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id INT NOT NULL,
+    type ENUM('tax', 'bill', 'fine') DEFAULT 'bill',
+    amount DECIMAL(15,2) NOT NULL,
+    description VARCHAR(255),
+    due_date DATETIME NOT NULL,
+    status ENUM('pending', 'paid', 'overdue') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    paid_at TIMESTAMP NULL,
+    FOREIGN KEY (player_id) REFERENCES player(id) ON DELETE CASCADE
+);
+
+
 -- =================== PERFORMANS İNDEKSLERİ ===================
 CREATE INDEX idx_cars_owner ON cars(owner_type, is_available);
 CREATE INDEX idx_cars_brand ON cars(brand_id);

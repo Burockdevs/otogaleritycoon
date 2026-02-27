@@ -249,6 +249,10 @@ const managementRouter = require('./routes/management');
 const dashboardRouter = require('./routes/dashboard');
 const feedbackRouter = require('./routes/feedback');
 const adminRouter = require('./routes/admin');
+const lotteryRouter = require('./routes/lottery');
+const factoryV2Router = require('./routes/factoryV2');
+const portRouter = require('./routes/port');
+const auctionRouter = require('./routes/auction');
 
 app.use('/api/auth', authRouter);
 app.use('/api', requireAuth, carsRouter);
@@ -258,6 +262,10 @@ app.use('/api/leaderboard', requireAuth, leaderboardRouter);
 app.use('/api/management', requireAuth, managementRouter);
 app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/feedback', requireAuth, feedbackRouter);
+app.use('/api/lottery', requireAuth, lotteryRouter);
+app.use('/api/factory-v2', requireAuth, factoryV2Router);
+app.use('/api/port', requireAuth, portRouter);
+app.use('/api/auction', requireAuth, auctionRouter);
 app.use('/api/admin', adminRouter);
 
 // Admin shortcut
@@ -354,6 +362,79 @@ async function start() {
             await pool.query("INSERT INTO system_settings (setting_key, setting_value) VALUES ('bank_interest_modifier', '0')");
             global.bankInterestModifier = 0;
         }
+
+        // AUTO MIGRATION FOR LOTO (ENDGAME)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS lottery (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
+                ticket_price INT DEFAULT 100000,
+                total_pool BIGINT DEFAULT 0,
+                winner_id INT NULL,
+                draw_date DATETIME,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS lottery_tickets (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lottery_id INT,
+                player_id INT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // AUTO MIGRATION FOR ENDGAME FACTORY
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS endgame_factories (
+                player_id INT PRIMARY KEY,
+                level INT DEFAULT 1,
+                xp INT DEFAULT 0,
+                is_producing BOOLEAN DEFAULT 0,
+                produced_car_model_id INT NULL,
+                production_end_time DATETIME NULL,
+                total_produced INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // AUTO MIGRATION FOR PORT EXPORT MISSIONS
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS export_missions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                model_id INT,
+                multiplier DECIMAL(3,1) DEFAULT 2.0,
+                expires_at DATETIME,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // AUTO MIGRATION FOR AUCTION HOUSE
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS auctions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                car_id INT,
+                starter_price BIGINT,
+                current_bid BIGINT,
+                highest_bidder_id INT NULL,
+                end_time DATETIME,
+                status ENUM('active', 'completed') DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // AUTO MIGRATION FOR PLAYER BILLS (TAXES/EXPENSES)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS player_bills (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                player_id INT NOT NULL,
+                type VARCHAR(100) NOT NULL,
+                amount BIGINT NOT NULL,
+                due_date DATETIME NOT NULL,
+                status ENUM('pending', 'overdue', 'paid') DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
     } catch (err) {
         console.error('Sistem ayarları yüklenemedi:', err);

@@ -577,6 +577,64 @@ function showConfirm(message) {
     });
 }
 
+function showPrompt(message, defaultValue = '') {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal active';
+        overlay.style.zIndex = '100000';
+        overlay.style.display = 'flex';
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.maxWidth = '400px';
+        content.style.textAlign = 'center';
+        content.style.padding = '30px 20px';
+
+        content.innerHTML = `
+            <div style="font-size: 44px; color: var(--gold); margin-bottom: 15px;">
+                <i class="fa-solid fa-keyboard"></i>
+            </div>
+            <h3 style="margin-bottom: 15px; font-size: 18px;">Bilgi Girişi</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; line-height: 1.5;">${message}</p>
+            <input type="text" id="promptInput" class="form-input" style="width: 100%; margin-bottom: 25px;" value="${defaultValue}">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-ghost" id="promptCancelBtn" style="flex:1; padding: 10px;">İptal</button>
+                <button class="btn btn-primary" id="promptOkBtn" style="flex:1; padding: 10px;">Tamam</button>
+            </div>
+        `;
+
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
+
+        const input = document.getElementById('promptInput');
+        input.focus();
+        input.select();
+
+        const cleanup = () => {
+            if (document.body.contains(overlay)) {
+                document.body.removeChild(overlay);
+            }
+        };
+
+        const submitPrompt = () => {
+            const val = input.value;
+            cleanup();
+            resolve(val);
+        };
+
+        document.getElementById('promptCancelBtn').onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        document.getElementById('promptOkBtn').onclick = submitPrompt;
+
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') submitPrompt();
+        });
+    });
+}
+
 async function api(path, opts) {
     try {
         const r = await fetch(API + path, {
@@ -619,7 +677,7 @@ function navigateTo(page) {
         management: loadManagement, upgrades: loadUpgrades,
         leaderboard: loadLeaderboard, achievements: loadAchievements,
         feedback: loadFeedbacks, notifications: loadNotifications,
-        bilgibankasi: loadBilgiBankasi
+        bilgibankasi: loadBilgiBankasi, loto: loadLoto, factoryv2: loadFactoryV2, port: loadPort, auction: loadAuction
     };
     if (loaders[page]) loaders[page]();
     if (typeof updatePlayerUI === 'function') updatePlayerUI();
@@ -1779,11 +1837,40 @@ async function loadBank() {
     const loan = d.currentLoan;
     const hasLoan = loan.remaining > 0;
     const paidPct = hasLoan ? Math.round(((loan.amount - loan.remaining) / loan.amount) * 100) : 0;
+    const bills = d.bills || [];
+
+    let billsHTML = `
+        <div class="bank-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0;"><i class="fa-solid fa-file-invoice-dollar"></i> Faturalar & Vergiler</h3>
+                ${bills.length > 0 ? `<button class="btn btn-sm btn-success" onclick="payAllBills()"><i class="fa-solid fa-check-double"></i> Tümünü Öde</button>` : ''}
+            </div>
+            <div class="bills-list" style="display:flex; flex-direction:column; gap:10px;">
+                ${bills.length === 0 ? '<div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;"><i class="fa-solid fa-mug-hot"></i></div><div class="empty-text" style="font-size:13px;">Ödenmemiş faturanız yok.</div></div>' :
+            bills.map(b => {
+                const isOverdue = b.status === 'overdue';
+                const dueDate = new Date(b.due_date);
+                const isNear = !isOverdue && (dueDate - new Date() < 24 * 60 * 60 * 1000);
+                return `
+                        <div class="bill-item ${isOverdue ? 'overdue' : ''}" style="background:var(--bg-input); border:1px solid ${isOverdue ? 'var(--danger)' : 'var(--border)'}; border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:700; font-size:14px; color:${isOverdue ? 'var(--danger)' : 'var(--text-primary)'}">${b.type}</div>
+                                <div style="font-size:11px; color:var(--text-muted);">Son Ödeme: <span style="color:${isNear || isOverdue ? 'var(--danger)' : 'inherit'}">${dueDate.toLocaleString('tr-TR')}</span></div>
+                                ${isOverdue ? '<div style="font-size:10px; color:var(--danger); font-weight:bold; margin-top:2px;"><i class="fa-solid fa-triangle-exclamation"></i> GECİKMİŞ (FAİZ BİNDİ)</div>' : ''}
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:800; font-size:15px; margin-bottom:4px;">${fmtPrice(b.amount)}</div>
+                                <button class="btn btn-sm ${isOverdue ? 'btn-danger' : 'btn-primary'}" onclick="payBill(${b.id})">Öde</button>
+                            </div>
+                        </div>`;
+            }).join('')
+        }
+            </div>
+        </div>`;
 
     let incomingHTML = '';
     if (d.incomingInstallments && d.incomingInstallments.length > 0) {
         const totalIncoming = d.incomingInstallments.reduce((sum, item) => sum + parseFloat(item.remaining_revenue), 0);
-
         const listHTML = d.incomingInstallments.map(ins => {
             const paidPct = Math.round((ins.paid_months / ins.total_months) * 100);
             return `
@@ -1792,12 +1879,10 @@ async function loadBank() {
                     <div style="font-weight:700; font-size:15px; color:var(--text-primary);"><i class="fa-solid fa-car-side"></i> ${ins.car_name}</div>
                     <div style="color:var(--success); font-weight:800; font-size:15px;">Aylık: +${fmtPrice(ins.monthly_payment)}</div>
                 </div>
-                
                 <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
                     <div><span>Toplam Tutar:</span> <strong style="color:var(--text-primary)">${fmtPrice(ins.total_revenue)}</strong></div>
                     <div><span>Kalan Alacak:</span> <strong style="color:var(--warning)">${fmtPrice(ins.remaining_revenue)}</strong></div>
                 </div>
-
                 <div style="margin-top:4px;">
                     <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
                         <span>Ödenen: ${ins.paid_months} Ay</span>
@@ -1821,51 +1906,76 @@ async function loadBank() {
         </div>`;
     }
 
-    c.innerHTML = `<div class="bank-grid">
-        <div class="bank-card"><h3><i class="fa-solid fa-building-columns"></i> Kredi Bilgileri</h3>
+    c.innerHTML = `
+    ${d.isSeized ? `
+        <div class="seized-alert" style="grid-column: 1 / -1; background:rgba(239, 68, 68, 0.1); border:1px solid var(--danger); border-radius:12px; padding:20px; margin-bottom:20px; display:flex; align-items:center; gap:20px;">
+            <div style="font-size:40px; color:var(--danger)"><i class="fa-solid fa-handcuffs"></i></div>
+            <div>
+                <h2 style="margin:0; color:var(--danger); font-size:20px;">HESABINIZA HACİZ KONULDU!</h2>
+                <p style="margin:5px 0 0 0; font-size:14px; opacity:0.8;">Ödenmemiş faturalarınız nedeniyle tüm ticari faaliyetleriniz (araç alım/satım) durdurulmuştur. Kısıtlamayı kaldırmak için lütfen bekleyen tüm borçlarınızı ödeyin.</p>
+            </div>
+        </div>
+    ` : ''}
+    <div class="bank-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
+        <div class="bank-card">
+            <h3><i class="fa-solid fa-building-columns"></i> Kredi İşlemleri</h3>
             <div class="bank-stat"><span class="bank-stat-label">Kredi Limiti</span><span class="bank-stat-value" style="color:var(--success)">${fmtPrice(d.loanLimit)}</span></div>
             <div class="bank-stat"><span class="bank-stat-label">Faiz Oranı</span><span class="bank-stat-value" style="color:var(--warning)">%${d.interestRate.toFixed(1)}</span></div>
-            <div class="bank-stat"><span class="bank-stat-label">Seviye</span><span class="bank-stat-value">${d.level}</span></div>
-            <div class="bank-stat"><span class="bank-stat-label">Durum</span><span class="bank-stat-value" style="color:${d.isSeized ? 'var(--danger)' : 'var(--success)'}">${d.isSeized ? '<i class="fa-solid fa-triangle-exclamation"></i> HACİZLİ' : '<i class="fa-solid fa-circle-check"></i> Normal'}</span></div>
-            ${!hasLoan && !d.activeLoanRequest ? `<div class="loan-form">
-                <input class="form-input" id="loanAmount" type="text" inputmode="numeric" placeholder="Kredi tutarı (₺)">
-                <select class="form-select" id="loanMonths"><option value="3">3 Ay</option><option value="6">6 Ay</option><option value="12" selected>12 Ay</option><option value="18">18 Ay</option><option value="24">24 Ay</option></select>
-                <textarea class="form-input" id="loanReason" placeholder="Kredi Amacı (Büyük krediler için zorunlu, örn: Galeri büyütme)" rows="2" style="width:100%; margin-top:8px; resize:vertical;"></textarea>
-                <button class="btn btn-lg btn-success" style="margin-top:8px;" onclick="takeLoan()"><i class="fa-solid fa-money-bill-transfer"></i> Kredi Çek</button>
-            </div>` : ''}
+            <div class="bank-stat"><span class="bank-stat-label">Banka Puanı</span><span class="bank-stat-value">${d.level * 10}</span></div>
+            <div class="bank-stat"><span class="bank-stat-label">Haciz Durumu</span><span class="bank-stat-value" style="color:${d.isSeized ? 'var(--danger)' : 'var(--success)'}">${d.isSeized ? 'AKTİF' : 'Yok'}</span></div>
+            
+            ${!hasLoan && !d.activeLoanRequest ? `
+                <div class="loan-form" style="margin-top:20px; padding:15px; background:var(--bg-input); border-radius:12px;">
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <input class="form-input" id="loanAmount" type="text" inputmode="numeric" placeholder="Kredi tutarı (₺)" style="font-weight:bold; font-size:16px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <select class="form-select" id="loanMonths" style="width:100%"><option value="3">3 Ay</option><option value="6">6 Ay</option><option value="12" selected>12 Ay</option><option value="18">18 Ay</option><option value="24">24 Ay</option></select>
+                    </div>
+                    <button class="btn btn-lg btn-success" style="width:100%;" onclick="takeLoan()"><i class="fa-solid fa-money-bill-transfer"></i> Kredi Başvurusu Yap</button>
+                    <p style="font-size:10px; color:var(--text-muted); margin-top:8px; text-align:center;">* Kredi onayı banka yetkilileri tarafından değerlendirilebilir.</p>
+                </div>` : ''}
+
             ${d.activeLoanRequest ? `
-                <div style="margin-top:20px; padding:15px; border-radius:8px; background:var(--bg-card); border:1px solid ${d.activeLoanRequest.status === 'counter_offer' ? 'var(--warning)' : 'var(--border)'}">
+                <div style="margin-top:20px; padding:15px; border-radius:12px; background:var(--bg-card); border:1px solid ${d.activeLoanRequest.status === 'counter_offer' ? 'var(--warning)' : 'var(--border)'}">
                     <h4 style="margin-top:0; color:${d.activeLoanRequest.status === 'counter_offer' ? 'var(--warning)' : 'var(--text-primary)'}">
-                        ${d.activeLoanRequest.status === 'counter_offer' ? '<i class="fa-solid fa-handshake"></i> Bankadan Karşı Teklif' : '<i class="fa-solid fa-hourglass-half"></i> Kredi Talebi Beklemede'}
+                        ${d.activeLoanRequest.status === 'counter_offer' ? '<i class="fa-solid fa-handshake"></i> Karşı Teklif Geldi' : '<i class="fa-solid fa-hourglass-half"></i> Başvuru İncelemede'}
                     </h4>
-                    <p style="font-size:13px; margin:10px 0;">Talep Edilen: <strong>${fmtPrice(d.activeLoanRequest.amount)}</strong> (${d.activeLoanRequest.months} Ay)</p>
+                    <p style="font-size:13px; margin:10px 0;">Başvuru: <strong>${fmtPrice(d.activeLoanRequest.amount)}</strong> (${d.activeLoanRequest.months} Ay)</p>
                     ${d.activeLoanRequest.status === 'counter_offer' ? `
-                        <div style="padding:10px; background:rgba(245, 158, 11, 0.1); border-left:4px solid var(--warning); margin-bottom:15px;">
-                            <strong>Banka Teklifi: ${fmtPrice(d.activeLoanRequest.counter_amount)}</strong><br>
-                            <span style="font-size:12px; color:var(--text-muted)">Mesaj: ${d.activeLoanRequest.admin_message || 'Banka bu tutarı uygun buldu.'}</span>
+                        <div style="padding:10px; background:rgba(245, 158, 11, 0.1); border-left:4px solid var(--warning); margin-bottom:15px; font-size:13px;">
+                            <strong>Teklif: ${fmtPrice(d.activeLoanRequest.counter_amount)}</strong><br>
+                            <span style="color:var(--text-muted)">Not: ${d.activeLoanRequest.admin_message || 'Banka kriterlerine göre revize edildi.'}</span>
                         </div>
                         <div style="display:flex; gap:10px;">
-                            <button class="btn btn-success" style="flex:1" onclick="respondToLoanCounter(${d.activeLoanRequest.id}, 'accept')"><i class="fa-solid fa-check"></i> Kabul Et</button>
-                            <button class="btn btn-danger" style="flex:1" onclick="respondToLoanCounter(${d.activeLoanRequest.id}, 'reject')"><i class="fa-solid fa-xmark"></i> Reddet</button>
+                            <button class="btn btn-success" style="flex:1" onclick="respondToLoanCounter(${d.activeLoanRequest.id}, 'accept')">Kabul</button>
+                            <button class="btn btn-danger" style="flex:1" onclick="respondToLoanCounter(${d.activeLoanRequest.id}, 'reject')">Reddet</button>
                         </div>
-                    ` : `
-                        <p style="font-size:12px; color:var(--text-muted)">Talebiniz merkez bankası tarafından inceleniyor. Lütfen bekleyin.</p>
-                    `}
+                    ` : ''}
                 </div>
             ` : ''}
         </div>
-        <div class="bank-card"><h3><i class="fa-solid fa-file-invoice"></i> Mevcut Kredi</h3>
+
+        <div class="bank-card">
+            <h3><i class="fa-solid fa-credit-card"></i> Kredi Ödemesi</h3>
             ${hasLoan ? `
-                <div class="bank-stat"><span class="bank-stat-label">Toplam Borç</span><span class="bank-stat-value">${fmtPrice(loan.amount)}</span></div>
-                <div class="bank-stat"><span class="bank-stat-label">Kalan Borç</span><span class="bank-stat-value" style="color:var(--danger)">${fmtPrice(loan.remaining)}</span></div>
+                <div class="bank-stat"><span class="bank-stat-label">Kalan Ana Borç</span><span class="bank-stat-value" style="color:var(--danger); font-size:18px;">${fmtPrice(loan.remaining)}</span></div>
                 <div class="bank-stat"><span class="bank-stat-label">Aylık Taksit</span><span class="bank-stat-value">${fmtPrice(loan.monthlyPayment)}</span></div>
-                <div class="bank-stat"><span class="bank-stat-label">Kalan Ay</span><span class="bank-stat-value">${loan.monthsLeft}</span></div>
-                <div class="bank-stat"><span class="bank-stat-label">Cezalar</span><span class="bank-stat-value" style="color:${loan.missedPayments > 0 ? 'var(--danger)' : 'var(--success)'}">${loan.missedPayments}/3</span></div>
-                <div class="loan-progress"><div class="loan-progress-bar" style="width:${paidPct}%"></div></div>
-                <p style="text-align:center;font-size:11px;color:var(--text-muted)">${paidPct}% ödendi</p>
-                <button class="btn btn-lg btn-primary" style="width:100%;margin-top:14px" onclick="payLoan()"><i class="fa-solid fa-credit-card"></i> Taksit Öde (${fmtPrice(Math.min(loan.monthlyPayment, loan.remaining))})</button>
-            ` : '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><div class="empty-text">Aktif krediniz yok</div></div>'}
+                <div class="bank-stat"><span class="bank-stat-label">Kalan Vade</span><span class="bank-stat-value">${loan.monthsLeft} Ay</span></div>
+                
+                <div style="margin:20px 0;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                        <span>Ödeme İlerlemesi</span>
+                        <span>%${paidPct}</span>
+                    </div>
+                    <div class="loan-progress" style="height:10px;"><div class="loan-progress-bar" style="width:${paidPct}%"></div></div>
+                </div>
+
+                <button class="btn btn-lg btn-primary" style="width:100%" onclick="payLoan()"><i class="fa-solid fa-wallet"></i> Taksit Öde (${fmtPrice(Math.min(loan.monthlyPayment, loan.remaining))})</button>
+            ` : '<div class="empty-state" style="padding:40px;"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><div class="empty-text">Aktif krediniz bulunmuyor.</div></div>'}
         </div>
+
+        ${billsHTML}
     </div>
     ${incomingHTML}`;
     setupPriceInput('loanAmount');
@@ -1890,9 +2000,35 @@ async function respondToLoanCounter(id, action) {
 
 async function payLoan() {
     const r = await post('/api/player/pay-loan');
-    if (r.success) { notify(r.message, 'success'); updateFromResponse(r); loadBank(); }
-    else notify(r.error, 'error');
+    if (r.success) {
+        notify(r.message, 'success');
+        updateFromResponse(r);
+        loadBank();
+    } else notify(r.error, 'error');
 }
+
+async function payBill(billId) {
+    if (!await showConfirm('Faturayı ödemek istediğinize emin misiniz?')) return;
+    const r = await post('/api/player/pay-bill', { billId });
+    if (r.success) {
+        notify(r.message, 'success');
+        updateFromResponse(r);
+        loadBank();
+    } else notify(r.error, 'error');
+}
+
+async function payAllBills() {
+    if (!await showConfirm('Tüm bekleyen ve gecikmiş faturalarınızı toplu olarak ödemek istiyor musunuz?')) return;
+    const r = await post('/api/player/pay-all-bills');
+    if (r.success) {
+        notify(r.message, 'success');
+        updateFromResponse(r);
+        loadBank();
+    } else notify(r.error, 'error');
+}
+
+
+
 
 // ============ PROFIT CHART ============
 async function loadProfitChart() {
@@ -2229,7 +2365,7 @@ async function loadManagement() {
 }
 
 async function hireStaff(role) {
-    const name = prompt('Personel ismi girin:', '');
+    const name = await showPrompt('Personel ismi girin:', '');
     if (!name) return;
     const r = await post('/api/management/staff/hire', { role, name });
     if (r.success) { notify(r.message, 'success'); loadManagement(); loadPlayer(); }
@@ -2330,7 +2466,7 @@ async function loadProfile() {
 }
 
 async function changeName(currentName) {
-    const newName = prompt('Yeni isminizi girin (max 50 karakter):', currentName);
+    const newName = await showPrompt('Yeni isminizi girin (max 50 karakter):', currentName);
     if (!newName || newName.trim() === '' || newName === currentName) return;
     if (newName.length > 50) { notify('İsim maksimum 50 karakter olabilir!', 'error'); return; }
 
@@ -3438,6 +3574,540 @@ function loadBilgiBankasi() {
 
     container.innerHTML = html;
 }
+
+// ============ GÜNLÜK LOTO ============
+async function loadLoto() {
+    const res = await get('/api/lottery');
+    if (!res.success) {
+        document.getElementById('lotoPoolDisplay').textContent = "Hata";
+        return;
+    }
+
+    const data = res.data;
+
+    // Aktif Loto
+    if (data.active) {
+        document.getElementById('lotoPoolDisplay').textContent = (data.active.total_pool || 0).toLocaleString('tr-TR') + ' ₺';
+        document.getElementById('lotoDateDisplay').textContent = 'Sonucunuz Açıklanacak: ' + new Date(data.active.draw_date).toLocaleString('tr-TR');
+        document.getElementById('lotoTicketPriceDisplay').textContent = (data.active.ticket_price || 100000).toLocaleString('tr-TR') + ' ₺';
+
+        document.getElementById('lotoParticipantsDisplay').textContent = `Katılımcı: ${data.participantCount || 0}/10 (Min)`;
+        document.getElementById('lotoMyTicketsDisplay').textContent = `${data.myTickets || 0}/10`;
+    }
+
+    // Geçmiş Loto
+    const historyContainer = document.getElementById('lotoHistoryContainer');
+    historyContainer.innerHTML = '';
+
+    if (data.history && data.history.length > 0) {
+        data.history.forEach(h => {
+            const isCancelled = h.status === 'cancelled';
+            const color = isCancelled ? 'var(--text-muted)' : 'var(--gold)';
+            const winnerText = isCancelled ? 'İptal Edildi (İade)' : `Kazanan: ${h.winner_name || 'Gizli'}`;
+            const poolAmount = isCancelled ? '0 ₺' : (h.total_pool || 0).toLocaleString('tr-TR') + ' ₺';
+            const dateStr = new Date(h.draw_date).toLocaleDateString('tr-TR');
+
+            historyContainer.innerHTML += `
+                <div style="background:var(--bg-dark); padding:10px; margin-bottom:10px; border-radius:5px; border-left:4px solid ${color};">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:5px;">
+                        <span>Çekiliş #${h.id}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div style="font-size:14px; font-weight:bold; color:${color};">${winnerText}</div>
+                    <div style="font-size:13px; margin-top:5px;">Toplam Havuz: ${poolAmount}</div>
+                </div>
+            `;
+        });
+    } else {
+        historyContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Henüz geçmiş bir çekiliş yok.</div>';
+    }
+}
+
+async function buyLotoTicket() {
+    if (!confirm("💰 100.000 ₺ karşılığında loto bileti satın almak istiyor musunuz?")) return;
+
+    const res = await post('/api/lottery/buy');
+    if (res.success) {
+        notify(res.message, 'success');
+        if (res.player) updatePlayerState(res.player);
+        loadLoto(); // UI Yenile
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+// ============ MEGA FABRIKA (V2) ============
+async function loadFactoryV2() {
+    const c = document.getElementById('factoryv2Content');
+    const res = await get('/api/factory-v2');
+    if (!res.success) {
+        c.innerHTML = `<div style="color:var(--danger)">Hata: ${res.error}</div>`;
+        return;
+    }
+
+    const { hasFactory, buildCost, requiredLevel, playerLevel, factory, availableModels } = res;
+
+    // Fabrika Yoksa Kurulum Ekranı
+    if (!hasFactory) {
+        if (playerLevel < requiredLevel) {
+            c.innerHTML = `
+                <div class="factory-locked" style="text-align:center; padding: 50px;">
+                    <div class="factory-locked-icon" style="font-size:48px; color:var(--text-muted); margin-bottom:20px;"><i class="fa-solid fa-lock"></i></div>
+                    <h2>Seviye Yetersiz</h2>
+                    <p>Mega Fabrika inşa edebilmek için ${requiredLevel}. seviye olmanız gerekmektedir.</p>
+                    <p style="color:var(--text-muted);font-size:13px">Sizin seviyeniz: ${playerLevel}</p>
+                </div>
+            `;
+            return;
+        }
+
+        c.innerHTML = `
+            <div class="admin-card" style="text-align:center; padding: 40px;">
+                <h2 style="color:var(--primary); font-size:32px;"><i class="fa-solid fa-city"></i> Mega Fabrika İnşa Et</h2>
+                <p style="margin:20px 0; font-size:16px; color:var(--text-muted);">
+                    Kendi otomotiv üretim imparatorluğunuzu kurun! Mega Fabrika ile hiper arabalar üretip toptan dış pazara (NPC'lere) satabilirsiniz.
+                </p>
+                <div style="font-size:28px; color:var(--gold); margin-bottom:30px; font-weight:bold;">Maliyet: ${buildCost.toLocaleString('tr-TR')} ₺</div>
+                <button class="action-btn action-buy" style="font-size: 20px; padding: 15px 40px;" onclick="buildFactoryV2()">
+                    <i class="fa-solid fa-hammer"></i> İnşaata Başla
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    // Fabrika Varsa Panel
+    let html = `
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- STATS -->
+            <div class="admin-card">
+                <h3><i class="fa-solid fa-chart-pie"></i> Fabrika Durumu</h3>
+                <div style="margin-top:15px; font-size:16px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span>Ar-Ge Seviyesi:</span>
+                        <strong style="color:var(--gold);">Seviye ${factory.level} / 10</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span>Toplam Üretim:</span>
+                        <strong>${factory.totalProduced} Araç</strong>
+                    </div>
+                    ${factory.level < 10 ? `
+                        <button class="btn btn-primary btn-sm" style="width:100%; margin-top:10px;" onclick="upgradeFactoryV2(${factory.level})">
+                            <i class="fa-solid fa-arrow-up"></i> Ar-Ge Geliştir (${Math.round(100000000 * Math.pow(1.5, factory.level)).toLocaleString('tr-TR')}₺)
+                        </button>
+                    ` : '<div style="color:var(--gold); text-align:center; margin-top:10px;">Max Seviye!</div>'}
+                </div>
+            </div>
+
+            <!-- PRODUCTION LINE -->
+            <div class="admin-card" style="text-align:center;">
+    `;
+
+    if (factory.isProducing && factory.producingCar) {
+        // Üretim Devam Ediyor
+        const isDone = factory.timeRemaining <= 0;
+        html += `
+            <h3><i class="fa-solid fa-gear fa-spin"></i> Üretim Hattı</h3>
+            <h4 style="margin: 15px 0; font-size:20px; color:var(--primary);">${factory.producingCar.brand_name} ${factory.producingCar.name}</h4>
+            
+            <div style="height: 20px; background:var(--bg-darker); border-radius:10px; overflow:hidden; margin: 20px 0;">
+                <div style="height:100%; width:${factory.progress}%; background:var(--success); transition: width 1s;"></div>
+            </div>
+            
+            ${isDone ? `
+                <div style="color:var(--success); font-weight:bold; font-size:18px; margin-bottom:15px;">Üretim Tamamlandı!</div>
+                <button class="action-btn action-buy" style="width:100%; font-size:16px;" onclick="claimFactoryV2()">
+                    <i class="fa-solid fa-box-open"></i> Satışı Tamamla (${Math.round(factory.producingCar.base_price).toLocaleString('tr-TR')} ₺)
+                </button>
+            ` : `
+                <div style="color:var(--text-muted); font-size:16px; margin-bottom:5px;">Kalan Süre:</div>
+                <div style="font-size:24px; font-family:monospace;">
+                    ${Math.floor(factory.timeRemaining / 60)}:${(factory.timeRemaining % 60).toString().padStart(2, '0')}
+                </div>
+                <!-- Refresh script -->
+                <script>
+                    if(window._factoryInterval) clearInterval(window._factoryInterval);
+                    window._factoryInterval = setInterval(() => { if(currentPage === 'factoryv2') loadFactoryV2(); else clearInterval(window._factoryInterval); }, 5000);
+                </script>
+            `}
+        `;
+    } else {
+        html += `
+            <h3><i class="fa-solid fa-power-off"></i> Üretim Hattı Boş</h3>
+            <p style="color:var(--text-muted); margin-top:20px;">Aşağıdan bir araç seçerek üretime başlayın.</p>
+        `;
+    }
+
+    html += `
+            </div>
+        </div>
+
+        <h3 style="margin-top:30px; border-bottom:1px solid var(--border); padding-bottom:10px;">Üretilebilir Araçlar (Ar-Ge Seçkisi)</h3>
+        <div class="market-grid" style="margin-top:20px;">
+    `;
+
+    availableModels.forEach((m) => {
+        const prodCost = Math.round(m.base_price * 0.4);
+        html += `
+            <div class="car-card">
+                <div class="car-brand" style="margin-bottom:10px;">
+                    <span style="font-size:24px;">${brandLogo(m.logo_emoji, 24)}</span> ${m.brand_name}
+                </div>
+                <div class="car-model" style="font-size:16px; margin-bottom:5px;">${m.name}</div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+                    <span>Maliyet:</span>
+                    <span style="color:var(--danger); font-weight:bold;">-${prodCost.toLocaleString('tr-TR')} ₺</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+                    <span>Net Kazanç:</span>
+                    <span style="color:var(--success); font-weight:bold;">+${Math.round(m.base_price - prodCost).toLocaleString('tr-TR')} ₺</span>
+                </div>
+                <button class="btn btn-outline" style="width:100%;" ${factory.isProducing ? 'disabled' : ''} onclick="produceFactoryV2(${m.id}, '${m.name}', ${prodCost})">
+                    <i class="fa-solid fa-play"></i> Üretime Başla
+                </button>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    c.innerHTML = html;
+}
+
+async function buildFactoryV2() {
+    if (!confirm("Mega Fabrika inşaatı için hesabınızdan 100,000,000 ₺ çekilecek. Onaylıyor musunuz?")) return;
+    const res = await post('/api/factory-v2/build');
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadFactoryV2();
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+async function upgradeFactoryV2(currentLvl) {
+    const cost = Math.round(100000000 * Math.pow(1.5, currentLvl));
+    if (!confirm(`Ar-Ge departmanınızı geliştirmek üretim süresini hızlandırır ve daha pahalı araç kilitlerini açar. Maliyet: ${cost.toLocaleString('tr-TR')} ₺. Onaylıyor musunuz?`)) return;
+    const res = await post('/api/factory-v2/upgrade');
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadFactoryV2();
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+async function produceFactoryV2(id, name, cost) {
+    if (!confirm(`${name} modelinin üretimi için kasadan ${cost.toLocaleString('tr-TR')} ₺ çekilecek. Onaylıyor musunuz?`)) return;
+    const res = await post(`/api/factory-v2/produce/${id}`);
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadFactoryV2();
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+async function claimFactoryV2() {
+    const res = await post('/api/factory-v2/claim');
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadFactoryV2();
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+// ============ GLOBAL PORT (İTHALAT/İHRACAT) ============
+async function loadPort() {
+    const c = document.getElementById('portContent');
+    const res = await get('/api/port');
+
+    if (!res.success) {
+        c.innerHTML = `<div style="color:var(--danger)">Hata: ${res.error}</div>`;
+        return;
+    }
+
+    if (res.isLocked) {
+        c.innerHTML = `
+            <div class="factory-locked" style="text-align:center; padding: 50px;">
+                <div class="factory-locked-icon" style="font-size:48px; color:var(--text-muted); margin-bottom:20px;"><i class="fa-solid fa-lock"></i></div>
+                <h2>Seviye Yetersiz</h2>
+                <p>Uluslararası Liman'a erişmek için ${res.requiredLevel}. seviye olmanız gerekmektedir.</p>
+                <p style="color:var(--text-muted);font-size:13px">Sizin seviyeniz: ${res.playerLevel}</p>
+            </div>
+        `;
+        return;
+    }
+
+    const { prices, mission, exportableCars } = res;
+
+    let html = `
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- İTHALAT (GACHA) -->
+            <div class="admin-card">
+                <h3 style="color:var(--accent);"><i class="fa-solid fa-box-open"></i> Gümrük Konteynerleri (İthalat)</h3>
+                <p style="color:var(--text-muted); font-size:14px; margin-bottom:15px;">Şansınızı deneyin ve gümrükten çekilen kapalı konteynerleri satın alın. İçinden ne çıkacağı belli olmaz!</p>
+                
+                <div style="background:var(--bg-darker); border-radius:8px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border-left:4px solid gray;">
+                    <div>
+                        <div style="font-weight:bold; font-size:16px;">Standart Konteyner</div>
+                        <div style="font-size:12px; color:var(--text-muted);">Tier 1-3 Araçlar Çıkabilir</div>
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; color:var(--gold); margin-bottom:5px; text-align:right;">${prices.basic.toLocaleString('tr-TR')} ₺</div>
+                        <button class="btn btn-outline" onclick="importContainer('basic')">Satın Al</button>
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-darker); border-radius:8px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border-left:4px solid purple;">
+                    <div>
+                        <div style="font-weight:bold; font-size:16px; color:purple;">Premium Konteyner</div>
+                        <div style="font-size:12px; color:var(--text-muted);">Tier 3-5 Lüks Araçlar Çıkabilir</div>
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; color:var(--gold); margin-bottom:5px; text-align:right;">${prices.premium.toLocaleString('tr-TR')} ₺</div>
+                        <button class="btn btn-outline" style="border-color:purple; color:purple;" onclick="importContainer('premium')">Satın Al</button>
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-darker); border-radius:8px; padding:15px; display:flex; justify-content:space-between; align-items:center; border-left:4px solid gold;">
+                    <div>
+                        <div style="font-weight:bold; font-size:16px; color:gold;">Efsanevi Konteyner</div>
+                        <div style="font-size:12px; color:var(--text-muted);">Tier 5+ Hiper/Ultra Araçlar Çıkabilir</div>
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; color:var(--gold); margin-bottom:5px; text-align:right;">${prices.legendary.toLocaleString('tr-TR')} ₺</div>
+                        <button class="action-btn action-buy" style="padding: 10px 20px;" onclick="importContainer('legendary')">Satın Al</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İHRACAT (GÖREV) -->
+            <div class="admin-card">
+                <h3 style="color:var(--success);"><i class="fa-solid fa-ship"></i> Liman İhracatı (Görev)</h3>
+    `;
+
+    if (mission) {
+        html += `
+                <div style="text-align:center; padding:20px; border:2px dashed var(--success); border-radius:10px; margin-top:15px; background:rgba(46, 204, 113, 0.05);">
+                    <div style="font-size:14px; color:var(--text-muted);">Aranan Model:</div>
+                    <div style="font-size:32px; margin:10px 0;">${brandLogo(mission.model_details.logo_emoji, 32)} ${mission.model_details.brand_name} ${mission.model_details.name}</div>
+                    
+                    <div style="display:inline-block; background:var(--bg-darker); padding:10px 20px; border-radius:20px; font-weight:bold; font-size:18px; color:var(--gold); margin-bottom:15px;">
+                        Ödül Çarpanı: ${mission.multiplier}x
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+                        Kabul Edilen Ödül: ~${Math.round(mission.model_details.base_price * mission.multiplier).toLocaleString('tr-TR')} ₺ e kadar
+                    </div>
+        `;
+
+        if (exportableCars.length > 0) {
+            html += `<h4 style="margin:10px 0;">Garajınızdaki Uygun Araçlar:</h4><div style="max-height: 150px; overflow-y: auto;">`;
+            exportableCars.forEach(car => {
+                html += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-darker); border-radius:5px; padding:10px; margin-bottom:5px;">
+                        <div style="text-align:left;">
+                            <div style="font-size:13px; font-weight:bold;">Araç #${car.id}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">Motor: ${car.motor_health}%, Kaporta: ${car.damage_status}</div>
+                        </div>
+                        <button class="btn btn-sm btn-success" onclick="exportCar(${car.id})">İhraç Et</button>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        } else {
+            html += `
+                    <div style="color:var(--danger); font-size:14px; margin-top:20px;">
+                        <i class="fa-solid fa-circle-xmark"></i> Garajınızda bu modele uygun (ilanda olmayan) araç bulunmamaktadır. Marketten alıp ihraç edebilirsiniz!
+                    </div>
+            `;
+        }
+
+        html += `</div>`;
+    } else {
+        html += `<p style="color:var(--text-muted); margin-top:20px;">Şu an aktif bir ihracat talebi bulunmuyor.</p>`;
+    }
+
+    html += `
+            </div>
+        </div>
+    `;
+
+    c.innerHTML = html;
+}
+
+async function importContainer(type) {
+    if (!confirm("Bu konteyneri satın almak istediğinize emin misiniz? İçinden çıkan aracı iade edemezsiniz.")) return;
+    const res = await post(`/api/port/import/${type}`);
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadPort();
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+async function exportCar(playerCarId) {
+    if (!confirm("Aracı limana teslim edip ihraç etmek istediğinize emin misiniz? Araç garajınızdan tamamen silinecektir.")) return;
+    const res = await post('/api/port/export', { playerCarId });
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadPort();
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
+
+// ============ MÜZAYEDE (AUCTION) ============
+async function loadAuction() {
+    const c = document.getElementById('auctionContent');
+    const res = await get('/api/auction');
+
+    if (!res.success) {
+        c.innerHTML = `<div style="color:var(--danger)">Hata: ${res.error}</div>`;
+        return;
+    }
+
+    if (!res.active) {
+        c.innerHTML = `
+            <div class="admin-card" style="text-align:center; padding: 50px;">
+                <div style="font-size:48px; color:var(--text-muted); margin-bottom:20px;"><i class="fa-solid fa-gavel"></i></div>
+                <h2 style="color:var(--primary); margin-bottom:10px;">Şu an aktif bir müzayede yok!</h2>
+                <p style="color:var(--text-muted);">Uluslararası galeriler yakında yeni nadir araçları açık artırmaya çıkaracaktır. Tetikte kalın!<br><br><span style="font-size:12px">(Müzayedeler sisteme rastgele düşer)</span></p>
+            </div>
+            <script>
+                if(window._auctionInterval) clearInterval(window._auctionInterval);
+                window._auctionInterval = setInterval(() => { if(currentPage === 'auction') loadAuction(); else clearInterval(window._auctionInterval); }, 5000);
+            </script>
+        `;
+        return;
+    }
+
+    const { auction } = res;
+
+    // Kalan süreyi formatla
+    const minutes = Math.floor(auction.time_remaining / 60);
+    const seconds = auction.time_remaining % 60;
+    const timeDisplay = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    // Timer Rengi (Son 60 saniye kırmızı)
+    const timeColor = auction.time_remaining < 60 ? 'var(--danger)' : 'var(--gold)';
+
+    let html = `
+        <div class="admin-grid" style="grid-template-columns: 1.5fr 1fr; gap: 20px;">
+            <!-- MÜZAYEDE EKRANI -->
+            <div class="admin-card" style="text-align:center; padding:30px;">
+                <div style="font-size:48px; margin-bottom:10px;">${brandLogo(auction.logo_emoji, 48)}</div>
+                <h2 style="font-size:32px; color:var(--primary);">${auction.car_name}</h2>
+                <div style="color:var(--text-muted); font-size:16px; margin-top:5px;">Yıl: ${auction.year} | KM: ${auction.km}</div>
+                
+                <div style="margin-top:30px; display:inline-block; border: 2px solid ${timeColor}; padding:15px 30px; border-radius:15px; background:var(--bg-darker);">
+                    <div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">Kalan Süre</div>
+                    <div style="font-size:36px; font-weight:bold; color:${timeColor}; font-family:monospace;">${timeDisplay}</div>
+                </div>
+
+                <div style="margin-top:40px; text-align:left; background:var(--bg-darker); padding:20px; border-radius:10px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:16px;">
+                        <span>Piyasa Değeri:</span>
+                        <strong style="color:var(--text-muted); text-decoration:line-through;">${auction.base_price.toLocaleString('tr-TR')} ₺</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:16px;">
+                        <span>Başlangıç Fiyatı:</span>
+                        <strong>${auction.starter_price.toLocaleString('tr-TR')} ₺</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <span>En Yüksek Teklif:</span>
+                        <strong style="color:var(--gold);">${auction.current_bid > 0 ? auction.current_bid.toLocaleString('tr-TR') : 'YOK'} ₺</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:14px;">
+                        <span>Teklif Sahibi:</span>
+                        <strong style="color:${auction.is_highest_bidder ? 'var(--success)' : 'var(--text-main)'}">${auction.highest_bidder_name} ${auction.is_highest_bidder ? '(Siz)' : ''}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEKLİF PANELİ -->
+            <div class="admin-card">
+                <h3 style="margin-bottom:20px;"><i class="fa-solid fa-money-bill-wave"></i> Teklif Ver</h3>
+    `;
+
+    if (auction.is_highest_bidder) {
+        html += `
+            <div style="text-align:center; padding:30px 10px; background:rgba(46, 204, 113, 0.1); border-radius:10px; border:2px solid var(--success);">
+                <i class="fa-solid fa-crown" style="font-size:40px; color:var(--success); margin-bottom:15px;"></i>
+                <h3 style="color:var(--success);">En Yüksek Teklif Sizde!</h3>
+                <p style="color:var(--text-muted); font-size:14px; margin-top:10px;">Süre bitene kadar bekleyin. Birisi teklifinizi aşarsa bilgilendirileceksiniz.</p>
+            </div>
+        `;
+    } else {
+        html += `
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">
+                Müzayedeyi kazanmak için anlık en yüksek teklifin üzerine çıkmalısınız. 
+                <span style="color:var(--warning);">Dikkat: Teklif verdiğiniz tutar hemen kasanızdan kesilir (emanet). Eğer başkası sizi gecerse para iade edilir.</span>
+            </p>
+            
+            <div style="background:var(--bg-darker); padding:15px; border-radius:8px; margin-bottom:20px; text-align:center;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Geçerli Minimum Teklif</div>
+                <div style="font-size:24px; font-weight:bold; color:var(--gold);">${auction.min_next_bid.toLocaleString('tr-TR')} ₺</div>
+            </div>
+
+            <button class="action-btn action-buy" style="width:100%; font-size:18px; padding:15px;" onclick="placeBid(${auction.id}, ${auction.min_next_bid})">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Minimum Teklifi Ver
+            </button>
+            
+            <!-- Özel Miktar Girebilme -->
+            <div style="margin-top:20px; text-align:center;">
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Veya kendi teklif miktarınızı belirleyin:</p>
+                <input type="number" id="customBidInput" class="admin-input" placeholder="Örn: ${(auction.min_next_bid + 5000000).toString()}" style="width:100%; margin-bottom:10px; text-align:center; font-size:18px;">
+                <button class="btn btn-outline" style="width:100%; border-color:var(--gold); color:var(--gold);" onclick="placeCustomBid(${auction.id}, ${auction.min_next_bid})">Özel Teklif Ver</button>
+            </div>
+        `;
+    }
+
+    html += `
+            </div>
+        </div>
+        
+        <script>
+            // Gerçek zamanlı senkronizasyon için polling
+            if(window._auctionInterval) clearInterval(window._auctionInterval);
+            window._auctionInterval = setInterval(() => { if(currentPage === 'auction') loadAuction(); else clearInterval(window._auctionInterval); }, 5000);
+        </script>
+    `;
+
+    c.innerHTML = html;
+}
+
+function placeCustomBid(auctionId, minBid) {
+    const input = document.getElementById('customBidInput');
+    const val = parseInt(input.value);
+
+    if (isNaN(val) || val < minBid) {
+        notify(`Özel teklifiniz minimum ${minBid.toLocaleString('tr-TR')}₺ olmalıdır!`, 'error');
+        return;
+    }
+    placeBid(auctionId, val);
+}
+
+async function placeBid(auctionId, bidAmount) {
+    if (!confirm(`Müzayedeye ${bidAmount.toLocaleString('tr-TR')}₺ tutarında teklif vermek istediğinize emin misiniz? Bu tutar hesabınızdan hemen çekilecektir.`)) return;
+    const res = await post('/api/auction/bid', { auctionId, bidAmount });
+    if (res.success) {
+        notify(res.message, 'success');
+        updatePlayerState(res.player);
+        loadAuction(); // Ekranı yenile
+    } else {
+        notify(res.error, 'error');
+    }
+}
+
 
 // Güvenli başlatma
 document.addEventListener('DOMContentLoaded', () => {

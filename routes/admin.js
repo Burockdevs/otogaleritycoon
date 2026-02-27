@@ -167,16 +167,7 @@ router.put('/players/:id/balance', requireAdmin, async (req, res) => {
     }
 });
 
-// =================== OYUNCU BAN / BAN KALDIR ===================
-router.put('/players/:id/ban', requireAdmin, async (req, res) => {
-    try {
-        const { ban } = req.body;
-        await pool.query('UPDATE player SET is_banned = ? WHERE id = ?', [ban ? 1 : 0, req.params.id]);
-        res.json({ success: true, message: `Oyuncu ${ban ? 'banlandı' : 'banı kaldırıldı'}.` });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
+
 
 // =================== OYUNCUYA ARAÇ VER ===================
 router.post('/players/:id/give-car', requireAdmin, async (req, res) => {
@@ -250,9 +241,9 @@ router.post('/players/:id/restrictions', requireAdmin, async (req, res) => {
         } else {
             const d = new Date();
             d.setHours(d.getHours() + parseInt(durationHours));
-            const pad = (n) => String(n).padStart(2, '0');
-            untilDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            untilDate = d; // MySQL2 handles Date objects correctly
         }
+
 
         if (type === 'login') {
             const isBanned = (durationHours === 'permanent' || untilDate) ? 1 : 0;
@@ -703,8 +694,9 @@ router.post('/impounded/:id/sell', requireAdmin, async (req, res) => {
 // =================== SETTINGS & BANKA ===================
 router.get('/settings', requireAdmin, async (req, res) => {
     try {
-        const [[{ bank_interest_modifier }]] = await pool.query('SELECT setting_value as bank_interest_modifier FROM system_settings WHERE setting_key = "bank_interest_modifier"');
-        res.json({ success: true, data: { bankInterestModifier: parseFloat(bank_interest_modifier) || 0 } });
+        const [rows] = await pool.query('SELECT setting_value FROM system_settings WHERE setting_key = "bank_interest_modifier"');
+        const val = rows.length > 0 ? parseFloat(rows[0].setting_value) || 0 : 0;
+        res.json({ success: true, data: { bankInterestModifier: val } });
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
@@ -712,7 +704,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
     try {
         const { bankInterestModifier } = req.body;
         const val = parseFloat(bankInterestModifier) || 0;
-        await pool.query('UPDATE system_settings SET setting_value = ? WHERE setting_key = "bank_interest_modifier"', [val.toString()]);
+        await pool.query('INSERT INTO system_settings (setting_key, setting_value) VALUES ("bank_interest_modifier", ?) ON DUPLICATE KEY UPDATE setting_value = ?', [val.toString(), val.toString()]);
         global.bankInterestModifier = val;
 
         await pool.query('INSERT INTO notifications (player_id, type, title, message) SELECT id, "system", "Merkez Bankası Açıklaması", ? FROM player WHERE is_banned=0',

@@ -13,6 +13,21 @@ function getAchievementChecker() {
     return checkAndUnlockAchievements;
 }
 
+// Kademeli vergi oranı (oyuncu seviyesine göre)
+async function getTaxRate(playerId) {
+    try {
+        const [rows] = await pool.query('SELECT level FROM player WHERE id = ?', [playerId]);
+        if (rows.length === 0) return 0.15;
+        const level = rows[0].level || 1;
+        if (level <= 5) return 0.05;
+        if (level <= 10) return 0.12;
+        if (level <= 30) return 0.20;
+        return 0.30;
+    } catch (err) {
+        return 0.15; // fallback
+    }
+}
+
 // =================== PİYASA EKOSİSTEM DÜZENLEYİCİ ===================
 async function recycleCarToMarket(connection, carId) {
     try {
@@ -231,9 +246,12 @@ router.post('/sell', async (req, res) => {
         const [existingListing] = await pool.query('SELECT id FROM listings WHERE player_car_id = ? AND status = "active"', [player_car_id]);
         if (existingListing.length > 0) return res.json({ success: false, error: 'Bu araç zaten ilanda!' });
 
-        // Ticaret Yasağı / Şahsi Araç Kontrolü
-        const [players] = await pool.query('SELECT trade_ban_until, personal_car_id FROM player WHERE id = ?', [req.playerId]);
+        // Ticaret Yasağı / Şahsi Araç / Haciz Kontrolü
+        const [players] = await pool.query('SELECT trade_ban_until, personal_car_id, is_seized FROM player WHERE id = ?', [req.playerId]);
         if (players.length > 0) {
+            if (players[0].is_seized) {
+                return res.json({ success: false, error: 'Hesabınız hacizli! Satış yapamazsınız, önce borcunuzu ödeyin.' });
+            }
             if (players[0].trade_ban_until && new Date() < new Date(players[0].trade_ban_until)) {
                 return res.json({ success: false, error: `Ticaret yasağınız bulunuyor! Bitiş: ${new Date(players[0].trade_ban_until).toLocaleString('tr-TR')}` });
             }
@@ -385,7 +403,8 @@ router.post('/listings/:id/accept/:offerId', async (req, res) => {
 
         let perInstallment = 0;
         let firstPayment = 0;
-        const tax = profit > 0 ? Math.round(profit * 0.15) : 0;
+        const taxRate = await getTaxRate(req.playerId);
+        const tax = profit > 0 ? Math.round(profit * taxRate) : 0;
         const netProfit = profit - tax;
 
         if (installmentMonths > 0) {
@@ -444,7 +463,7 @@ router.post('/listings/:id/accept/:offerId', async (req, res) => {
         // VERGİ HAZİNEYE AKTARIMI
         if (tax > 0) {
             const { addTreasuryIncome } = require('../services/treasury');
-            await addTreasuryIncome(connection, tax, `Araç Satış Vergisi (Devlet Payı: %15)`);
+            await addTreasuryIncome(connection, tax, `Araç Satış Vergisi (Devlet Payı: %${Math.round(taxRate * 100)})`);
         }
 
         // ============ İŞLETME YORUMLARI OLUŞTURMA (SQL KAYDI) ============
@@ -610,9 +629,14 @@ router.post('/instant-sell', async (req, res) => {
         const { player_car_id } = req.body;
         const pid = req.playerId;
 
-        // Günlük limit kontrolü ve Şahsi Araç Kontrolü
-        const [playerRows] = await connection.query('SELECT daily_instant_sells, last_instant_sell_reset, personal_car_id FROM player WHERE id = ? FOR UPDATE', [pid]);
+        // Günlük limit kontrolü / Şahsi Araç / Haciz Kontrolü
+        const [playerRows] = await connection.query('SELECT daily_instant_sells, last_instant_sell_reset, personal_car_id, is_seized FROM player WHERE id = ? FOR UPDATE', [pid]);
         const p = playerRows[0];
+
+        if (p.is_seized) {
+            await connection.rollback();
+            return res.json({ success: false, error: 'Hesabınız hacizli! Hızlı satış yapılamaz.' });
+        }
 
         if (p.personal_car_id === parseInt(player_car_id)) {
             await connection.rollback();
@@ -650,7 +674,8 @@ router.post('/instant-sell', async (req, res) => {
         const sellPrice = Math.round(pCar.original_buy_price * profitRate);
         const profit = sellPrice - pCar.original_buy_price;
 
-        const tax = profit > 0 ? Math.round(profit * 0.15) : 0;
+        const taxRate = await getTaxRate(pid);
+        const tax = profit > 0 ? Math.round(profit * taxRate) : 0;
         const netProfit = profit - tax;
         const netSellPrice = sellPrice - tax;
 

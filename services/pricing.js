@@ -98,8 +98,8 @@ async function calculateMarketValue(carId) {
         marketValue *= scarcityMultiplier;
 
         // --- PROFIT MARGIN CAP ---
-        // Prevents outrageous +180% margins by clamping the total compounded multipliers
-        const maxAllowedValue = baseAnchor * 1.35;
+        // Prevents outrageous margins by clamping the total compounded multipliers
+        const maxAllowedValue = baseAnchor * 2.0;
         if (marketValue > maxAllowedValue) {
             marketValue = maxAllowedValue;
         }
@@ -355,12 +355,12 @@ function calculateInspectionCost(carPrice) {
     return Math.max(cost, 500); // Minimum 500₺
 }
 
-// Tamir ücreti hesaplama
+// Tamir ücreti hesaplama (Güncellenmiş: daha pahalı tamir maliyetleri)
 function calculateRepairCost(partStatus, carPrice) {
-    let baseCost = carPrice * 0.02;
-    const statusMultipliers = { 'Hasarlı': 2.0, 'Değişen': 1.5, 'Boyalı': 1.0, 'Çizik': 0.5 };
+    let baseCost = carPrice * 0.04;
+    const statusMultipliers = { 'Hasarlı': 2.5, 'Değişen': 1.8, 'Boyalı': 1.2, 'Çizik': 0.7 };
     baseCost *= (statusMultipliers[partStatus] || 1);
-    return Math.round(Math.max(baseCost * 1.5, 1000));
+    return Math.round(Math.max(baseCost * 1.5, 2000));
 }
 
 // Motor Yenileme Ücreti (Sağlık ve Piyasa Değerine Göre)
@@ -372,15 +372,15 @@ function calculateMotorRepairCost(carPrice, motorHealth) {
     return Math.round(Math.max(cost, 2000));
 }
 
-// Tamir sonrası değer artışı
+// Tamir sonrası değer artışı (Güncellenmiş: tamirli aracın değeri daha çok artar)
 function calculateRepairValueIncrease(carPrice, oldStatus) {
     let increase = 0;
 
     const statusValues = {
-        'Hasarlı': 0.15,
-        'Değişen': 0.10,
-        'Boyalı': 0.06,
-        'Çizik': 0.03
+        'Hasarlı': 0.15, // Eskiden 0.35'ti. (Maliyet ~0.10, Kâr %5'e düştü)
+        'Değişen': 0.08, // Eskiden 0.22'di. (Maliyet ~0.07, Kâr %1'e düştü)
+        'Boyalı': 0.05,  // Eskiden 0.14'tü. (Maliyet ~0.05, Kâr %0'a yakın)
+        'Çizik': 0.03    // Eskiden 0.07'ydi. (Maliyet ~0.03, Kâr %0'a yakın)
     };
 
     increase = carPrice * (statusValues[oldStatus] || 0.05);
@@ -394,10 +394,10 @@ function calculatePaintCost(carPrice, isLansomanColor) {
     return Math.round(Math.max(cost, 2000));
 }
 
-// Boyama sonrası değer artışı
+// Boyama sonrası değer artışı (Güncellenmiş: boyama daha değerli)
 function calculatePaintValueIncrease(carPrice, isLansomanColor) {
-    let increase = carPrice * 0.04;
-    if (isLansomanColor) increase *= 1.8; // Lansoman rengi daha çok artırır
+    let increase = carPrice * 0.04; // Eskiden 0.08'di
+    if (isLansomanColor) increase *= 1.5; // Eskiden 2.0'dı
     return Math.round(increase);
 }
 

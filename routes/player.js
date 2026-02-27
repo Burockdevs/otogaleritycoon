@@ -608,6 +608,8 @@ router.get('/loans', async (req, res) => {
         const [activeRequests] = await pool.query('SELECT * FROM loan_requests WHERE player_id=? AND status IN ("pending", "counter_offer") LIMIT 1', [p.id]);
         const activeLoanRequest = activeRequests.length > 0 ? activeRequests[0] : null;
 
+        const [playerBills] = await pool.query('SELECT * FROM player_bills WHERE player_id=? AND status IN ("pending", "overdue") ORDER BY due_date ASC', [p.id]);
+
         res.json({
             success: true,
             data: {
@@ -620,7 +622,8 @@ router.get('/loans', async (req, res) => {
                 isSeized: p.is_seized,
                 level: p.level,
                 incomingInstallments: installments,
-                activeLoanRequest
+                activeLoanRequest,
+                bills: playerBills
             }
         });
     } catch (err) {
@@ -723,6 +726,85 @@ router.post('/pay-loan', async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
+router.post('/pay-bill', async (req, res) => {
+    try {
+        const pid = req.playerId;
+        const { billId } = req.body;
+
+        const [bills] = await pool.query('SELECT * FROM player_bills WHERE id=? AND player_id=? AND status IN ("pending", "overdue")', [billId, pid]);
+        if (bills.length === 0) return res.json({ success: false, error: 'Fatura bulunamadı veya zaten ödenmiş!' });
+
+        const bill = bills[0];
+        const p = await getPlayer(pid);
+
+        if (p.balance < bill.amount) return res.json({ success: false, error: `Yetersiz bakiye! Gerekli: ${bill.amount.toLocaleString('tr-TR')}₺` });
+
+        await pool.query('UPDATE player SET balance = balance - ? WHERE id = ?', [bill.amount, pid]);
+        await pool.query('UPDATE player_bills SET status = "paid" WHERE id = ?', [bill.id]);
+        await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "expense", ?, ?)',
+            [pid, bill.amount, `Fatura Ödemesi: ${bill.type}`]);
+
+        const { addTreasuryIncome } = require('../services/treasury');
+        await addTreasuryIncome(pool, bill.amount, `Fatura Geliri: ${bill.type}`);
+
+        // Borç kontrolü - Eğer başka 'overdue' (gecikmiş) borcu kalmadıysa kısıtlamayı kaldır
+        const [remainingOverdue] = await pool.query('SELECT id FROM player_bills WHERE player_id = ? AND status = "overdue"', [pid]);
+        if (remainingOverdue.length === 0) {
+            await pool.query('UPDATE player SET is_seized = 0 WHERE id = ?', [pid]);
+        }
+
+        res.json({ success: true, message: `${bill.type} faturası başarıyla ödendi!`, player: await getPlayer(pid) });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Toplu Fatura Ödeme
+router.post('/pay-all-bills', async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const pid = req.playerId;
+
+        const [bills] = await connection.query('SELECT * FROM player_bills WHERE player_id=? AND status IN ("pending", "overdue") FOR UPDATE', [pid]);
+        if (bills.length === 0) {
+            await connection.rollback();
+            return res.json({ success: false, error: 'Ödenmemiş faturanız bulunmuyor!' });
+        }
+
+        const totalAmount = bills.reduce((sum, b) => sum + b.amount, 0);
+        const [playerRows] = await connection.query('SELECT balance FROM player WHERE id = ? FOR UPDATE', [pid]);
+        const p = playerRows[0];
+
+        if (p.balance < totalAmount) {
+            await connection.rollback();
+            return res.json({ success: false, error: `Yetersiz bakiye! Toplam: ${totalAmount.toLocaleString('tr-TR')}₺` });
+        }
+
+        await connection.query('UPDATE player SET balance = balance - ?, is_seized = 0 WHERE id = ?', [totalAmount, pid]);
+        await connection.query('UPDATE player_bills SET status = "paid" WHERE player_id = ? AND status IN ("pending", "overdue")', [pid]);
+
+        for (const bill of bills) {
+            await connection.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "expense", ?, ?)',
+                [pid, bill.amount, `Toplu Fatura Ödemesi: ${bill.type}`]);
+        }
+
+        const { addTreasuryIncome } = require('../services/treasury');
+        await addTreasuryIncome(connection, totalAmount, `Toplu Fatura Geliri (${bills.length} adet)`);
+
+        await connection.commit();
+        res.json({ success: true, message: `Tüm faturalarınız (${bills.length} adet) başarıyla ödendi!`, totalAmount });
+    } catch (err) {
+        await connection.rollback();
+        res.status(500).json({ success: false, error: err.message });
+    } finally {
+        connection.release();
+    }
+});
+
+
+
 
 router.post('/loan-counter/:id/action', async (req, res) => {
     try {
@@ -990,8 +1072,8 @@ router.post('/illegal-mod/:playerCarId', async (req, res) => {
             await pool.query('UPDATE cars SET km=? WHERE id=?', [newKm, pCar.car_id]);
         }
 
-        // Değer artışı
-        const priceBonus = Math.round(pCar.price * (mod.hpBonus * 50 + mod.torqueBonus * 30 + mod.speedBonus * 100) / 100000) || Math.round(pCar.price * 0.02);
+        // Değer artışı (Zorlaştırıldı: Kâr marjları %80 düşürüldü)
+        const priceBonus = Math.round(pCar.price * ((mod.hpBonus * 50 + mod.torqueBonus * 30 + mod.speedBonus * 100) / 100000) * 0.2) || Math.round(pCar.price * 0.005);
 
         await pool.query(
             'INSERT INTO illegal_mods (player_car_id,mod_type,mod_name,mod_tier,hp_bonus,torque_bonus,speed_bonus,price_bonus,risk_percent,cost) VALUES (?,?,?,?,?,?,?,?,?,?)',

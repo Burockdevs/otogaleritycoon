@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- W Motors inspired -->
+  <rect x="10" y="10" width="80" height="80" rx="10" fill="#000" stroke="#fff" stroke-width="3"/>
+  <text x="50" y="65" font-family="Arial, sans-serif" font-size="50" font-weight="bold" fill="#fff" text-anchor="middle">W</text>
+  <path d="M 20 20 L 80 80 M 80 20 L 20 80" stroke="#ff0000" stroke-width="2" opacity="0.3"/>
+</svg>

@@ -482,6 +482,404 @@ const BRANDS = [
         models: [
             { name: 'T11X', tier: 2, body: 'SUV', basePrice: 1200000, topSpeed: 185, torque: 350, fuel_type: 'Elektrik' }
         ]
+    },
+    // =================== YENİ PAHALII ARAÇLAR (100M - 500M+) ===================
+    // Yeni Ultra Lüks Markalar
+    {
+        name: 'Rimok', country: 'Hırvatistan', prestige: 10, logo: '/img/brands/rimok.svg', factory: 'Hırvatistan',
+        models: [
+            { name: 'Nevaro', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 412, torque: 2360 },
+            { name: 'Nevaro S', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 420, torque: 2400 },
+            { name: 'Nevaro R', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 430, torque: 2500 },
+            { name: 'Nevaro Time Attack', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 410, torque: 2600 },
+            { name: 'Concept Uno', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 450, torque: 2800 },
+            { name: 'Concept Duo', tier: 4, body: 'Coupe', basePrice: 220000000, topSpeed: 440, torque: 2700 },
+            { name: 'Scalaro', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 460, torque: 2900 },
+            { name: 'Filamento', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 405, torque: 2300 },
+            { name: 'Hypera One', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 470, torque: 3000 },
+            { name: 'Voltaro GT', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 415, torque: 2450 },
+            { name: 'Electra R', tier: 4, body: 'Sedan', basePrice: 110000000, topSpeed: 380, torque: 2200 },
+            { name: 'Aurora', tier: 4, body: 'Cabrio', basePrice: 160000000, topSpeed: 400, torque: 2350 },
+            { name: 'Nebula', tier: 4, body: 'Coupe', basePrice: 170000000, topSpeed: 425, torque: 2500 },
+            { name: 'Prizma', tier: 4, body: 'Spor', basePrice: 190000000, topSpeed: 435, torque: 2600 },
+            { name: 'Ionık', tier: 4, body: 'Sedan', basePrice: 105000000, topSpeed: 370, torque: 2100 },
+            { name: 'Celestro', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 480, torque: 3200 },
+            { name: 'Quantum', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 490, torque: 3500 },
+            { name: 'Infinitum', tier: 4, body: 'Coupe', basePrice: 500000000, topSpeed: 500, torque: 4000 }
+        ]
+    },
+    {
+        name: 'Zenvo', country: 'Danimarka', prestige: 10, logo: '/img/brands/zenvo.svg', factory: 'Danimarka',
+        models: [
+            { name: 'TSR-Z', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 325, torque: 1100 },
+            { name: 'TSR-ZS', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 340, torque: 1200 },
+            { name: 'TSR-GT', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 330, torque: 1150 },
+            { name: 'Aurora GT', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 355, torque: 1350 },
+            { name: 'Aurora GT Evo', tier: 4, body: 'Coupe', basePrice: 180000000, topSpeed: 365, torque: 1400 },
+            { name: 'Hypernova', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 380, torque: 1500 },
+            { name: 'Aether', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 395, torque: 1600 },
+            { name: 'Ragnarök', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 410, torque: 1700 },
+            { name: 'Odin', tier: 4, body: 'Coupe', basePrice: 350000000, topSpeed: 420, torque: 1800 },
+            { name: 'Thor', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 430, torque: 1900 },
+            { name: 'Fenrir', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 345, torque: 1250 },
+            { name: 'Midgard', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 350, torque: 1300 },
+            { name: 'Valhalla R', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 360, torque: 1380 },
+            { name: 'Bifrost', tier: 4, body: 'Cabrio', basePrice: 170000000, topSpeed: 340, torque: 1320 },
+            { name: 'Yggdrasil', tier: 4, body: 'Spor', basePrice: 450000000, topSpeed: 440, torque: 2000 },
+            { name: 'Niflheim', tier: 4, body: 'Spor', basePrice: 500000000, topSpeed: 460, torque: 2200 }
+        ]
+    },
+    {
+        name: 'W Motors', country: 'BAE', prestige: 10, logo: '/img/brands/wmotors.svg', factory: 'BAE',
+        models: [
+            { name: 'Lykon Hyperspor', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 395, torque: 1080 },
+            { name: 'Fenyr SuperSpor', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 400, torque: 900 },
+            { name: 'Lykon Deluxe', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 385, torque: 1100 },
+            { name: 'Fenyr SuperSpor Turbo', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 410, torque: 980 },
+            { name: 'Dubai Edition', tier: 4, body: 'Coupe', basePrice: 200000000, topSpeed: 400, torque: 1200 },
+            { name: 'Lykon Platinum', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 405, torque: 1300 },
+            { name: 'Royal Phantom', tier: 4, body: 'Sedan', basePrice: 180000000, topSpeed: 350, torque: 1100 },
+            { name: 'Sheikh Edition', tier: 4, body: 'Coupe', basePrice: 300000000, topSpeed: 410, torque: 1400 },
+            { name: 'Abu Dhabi Special', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 420, torque: 1500 },
+            { name: 'Golden Eagle', tier: 4, body: 'Coupe', basePrice: 400000000, topSpeed: 430, torque: 1600 },
+            { name: 'Sahara GT', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 390, torque: 950 },
+            { name: 'Oasis', tier: 4, body: 'Cabrio', basePrice: 140000000, topSpeed: 375, torque: 1050 },
+            { name: 'Petromax', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 398, torque: 1150 },
+            { name: 'Crown Jewel', tier: 4, body: 'Coupe', basePrice: 500000000, topSpeed: 440, torque: 1800 }
+        ]
+    },
+    {
+        name: 'SSG', country: 'ABD', prestige: 10, logo: '/img/brands/ssg.svg', factory: 'ABD',
+        models: [
+            { name: 'Tuataro', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 455, torque: 1350 },
+            { name: 'Tuataro Striker', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 460, torque: 1400 },
+            { name: 'Tuataro Aggressor', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 465, torque: 1500 },
+            { name: 'Venom F6', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 470, torque: 1400 },
+            { name: 'Venom F6 Revolution', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 475, torque: 1550 },
+            { name: 'Ultimate Aero TT', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 412, torque: 1200 },
+            { name: 'Ultimate Aero TT Evo', tier: 4, body: 'Spor', basePrice: 140000000, topSpeed: 420, torque: 1300 },
+            { name: 'Thunder', tier: 4, body: 'Coupe', basePrice: 200000000, topSpeed: 450, torque: 1600 },
+            { name: 'Lightning', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 460, torque: 1700 },
+            { name: 'Apex Predator', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 480, torque: 1800 },
+            { name: 'Eagle GT', tier: 4, body: 'Coupe', basePrice: 170000000, topSpeed: 440, torque: 1450 },
+            { name: 'Mustang Killer', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 445, torque: 1500 },
+            { name: 'Serpent', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 490, torque: 1900 },
+            { name: 'Hydra', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 500, torque: 2000 },
+            { name: 'Titan', tier: 4, body: 'Coupe', basePrice: 450000000, topSpeed: 505, torque: 2100 },
+            { name: 'Omega', tier: 4, body: 'Spor', basePrice: 500000000, topSpeed: 510, torque: 2200 }
+        ]
+    },
+    // =================== MEVCUT LÜKS MARKALARA EK MODELLER ===================
+    {
+        name: 'Purscha Premium', country: 'Almanya', prestige: 8, logo: '/img/brands/purscha.svg', factory: 'Almanya',
+        models: [
+            { name: '912 GT1', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 350, torque: 900 },
+            { name: '912 GT1 Straßen', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 355, torque: 950 },
+            { name: '912 Spyder', tier: 4, body: 'Cabrio', basePrice: 110000000, topSpeed: 340, torque: 870 },
+            { name: '921 Carrera GT', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 360, torque: 980 },
+            { name: '921 Mission E', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 370, torque: 1050 },
+            { name: '921 GT3 RS', tier: 4, body: 'Spor', basePrice: 140000000, topSpeed: 348, torque: 920 },
+            { name: '921 Turbo RS', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 365, torque: 1000 },
+            { name: '921 Sport Classic', tier: 4, body: 'Coupe', basePrice: 170000000, topSpeed: 340, torque: 850 },
+            { name: '917 Tribute', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 380, torque: 1100 },
+            { name: '904 Living Legend', tier: 4, body: 'Coupe', basePrice: 250000000, topSpeed: 350, torque: 1050 },
+            { name: 'Vision GT', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 395, torque: 1200 },
+            { name: '919 Hybrid', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 410, torque: 1500 },
+            { name: '959 Reimagined', tier: 4, body: 'Coupe', basePrice: 180000000, topSpeed: 355, torque: 1050 },
+            { name: 'Tayken Turismo', tier: 4, body: 'Sedan', basePrice: 105000000, topSpeed: 320, torque: 900 },
+            { name: 'Cayena RS', tier: 4, body: 'SUV', basePrice: 108000000, topSpeed: 310, torque: 950 },
+            { name: 'Panamero RS', tier: 4, body: 'Sedan', basePrice: 115000000, topSpeed: 325, torque: 920 },
+            { name: '912 Dakar', tier: 4, body: 'Spor', basePrice: 125000000, topSpeed: 335, torque: 900 },
+            { name: '912 Speedster', tier: 4, body: 'Cabrio', basePrice: 190000000, topSpeed: 342, torque: 880 },
+            { name: 'Mission X', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 420, torque: 1600 }
+        ]
+    },
+    {
+        name: 'Ferraro Speciale', country: 'İtalya', prestige: 9, logo: '/img/brands/ferraro.svg', factory: 'İtalya',
+        models: [
+            { name: 'FXX-K Evo', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 365, torque: 900 },
+            { name: '299 GTO Heritage', tier: 4, body: 'Coupe', basePrice: 120000000, topSpeed: 340, torque: 850 },
+            { name: '250 GTO Tributo', tier: 4, body: 'Coupe', basePrice: 500000000, topSpeed: 310, torque: 700 },
+            { name: 'Enzo Secondo', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 380, torque: 1000 },
+            { name: 'F41 Retro', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 370, torque: 950 },
+            { name: 'F51 GTB', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 355, torque: 900 },
+            { name: 'Dıno 248 GT', tier: 4, body: 'Coupe', basePrice: 130000000, topSpeed: 330, torque: 800 },
+            { name: 'Testorosso Retro', tier: 4, body: 'Coupe', basePrice: 160000000, topSpeed: 350, torque: 870 },
+            { name: 'SP3 Daytona', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 385, torque: 1050 },
+            { name: 'SP2 Monza', tier: 4, body: 'Cabrio', basePrice: 200000000, topSpeed: 370, torque: 980 },
+            { name: 'SP1 Classica', tier: 4, body: 'Coupe', basePrice: 170000000, topSpeed: 345, torque: 890 },
+            { name: '813 Competizione', tier: 4, body: 'Spor', basePrice: 140000000, topSpeed: 360, torque: 920 },
+            { name: '813 Competizione A', tier: 4, body: 'Cabrio', basePrice: 150000000, topSpeed: 355, torque: 910 },
+            { name: 'F9 Challenge', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 350, torque: 880 },
+            { name: 'Icona SP', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 395, torque: 1100 },
+            { name: 'Vision Gran Turismo', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 405, torque: 1200 },
+            { name: 'KC23', tier: 4, body: 'Spor', basePrice: 105000000, topSpeed: 345, torque: 870 },
+            { name: '297 GTB Assetto', tier: 4, body: 'Spor', basePrice: 115000000, topSpeed: 348, torque: 875 },
+            { name: 'Futura Concept', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 415, torque: 1350 },
+            { name: 'Aperta', tier: 4, body: 'Cabrio', basePrice: 450000000, topSpeed: 408, torque: 1300 }
+        ]
+    },
+    {
+        name: 'Lamburghini Oro', country: 'İtalya', prestige: 9, logo: '/img/brands/lamburghini.svg', factory: 'İtalya',
+        models: [
+            { name: 'Veneno', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 356, torque: 720 },
+            { name: 'Veneno Roadster', tier: 4, body: 'Cabrio', basePrice: 130000000, topSpeed: 356, torque: 720 },
+            { name: 'Centenario', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 350, torque: 710 },
+            { name: 'Centenario Roadster', tier: 4, body: 'Cabrio', basePrice: 115000000, topSpeed: 350, torque: 710 },
+            { name: 'Sesto Elemento', tier: 4, body: 'Spor', basePrice: 140000000, topSpeed: 350, torque: 700 },
+            { name: 'Egoısta', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 330, torque: 600 },
+            { name: 'Terzo Mıllennio', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 380, torque: 1200 },
+            { name: 'V12 Vision GT', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 370, torque: 900 },
+            { name: 'Invencible', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 355, torque: 780 },
+            { name: 'Autentica', tier: 4, body: 'Cabrio', basePrice: 155000000, topSpeed: 355, torque: 780 },
+            { name: 'Sıan FKP 38', tier: 4, body: 'Spor', basePrice: 170000000, topSpeed: 360, torque: 850 },
+            { name: 'Countach LPI', tier: 4, body: 'Coupe', basePrice: 160000000, topSpeed: 352, torque: 800 },
+            { name: 'Diablo VT', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 338, torque: 680 },
+            { name: 'Diablo GT', tier: 4, body: 'Spor', basePrice: 105000000, topSpeed: 340, torque: 690 },
+            { name: 'Murciélago SV', tier: 4, body: 'Spor', basePrice: 108000000, topSpeed: 342, torque: 700 },
+            { name: 'Gallardo Superleggera', tier: 4, body: 'Spor', basePrice: 102000000, topSpeed: 322, torque: 540 },
+            { name: 'Lanzador EV', tier: 4, body: 'SUV', basePrice: 300000000, topSpeed: 350, torque: 1500 },
+            { name: 'Squadra Corse', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 375, torque: 1100 },
+            { name: 'Vision 2050', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 400, torque: 1600 },
+            { name: 'Miura Omaggio', tier: 4, body: 'Coupe', basePrice: 450000000, topSpeed: 390, torque: 1000 }
+        ]
+    },
+    {
+        name: 'MaLaren Heritage', country: 'İngiltere', prestige: 9, logo: '/img/brands/malaren.svg', factory: 'İngiltere',
+        models: [
+            { name: 'F2', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 390, torque: 1200 },
+            { name: 'F2 LM', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 385, torque: 1250 },
+            { name: 'P2 GTR', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 360, torque: 1000 },
+            { name: 'Elvo', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 340, torque: 900 },
+            { name: 'Elvo GT', tier: 4, body: 'Coupe', basePrice: 110000000, topSpeed: 345, torque: 920 },
+            { name: 'Sabre', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 348, torque: 950 },
+            { name: 'Senna GTR', tier: 4, body: 'Spor', basePrice: 140000000, topSpeed: 338, torque: 850 },
+            { name: 'Solüs GT', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 320, torque: 780 },
+            { name: '621S Spider', tier: 4, body: 'Cabrio', basePrice: 105000000, topSpeed: 330, torque: 870 },
+            { name: '651 LT Spider', tier: 4, body: 'Cabrio', basePrice: 115000000, topSpeed: 335, torque: 890 },
+            { name: 'Speedtaıl Albert', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 405, torque: 1180 },
+            { name: 'BP23 Hyper GT', tier: 4, body: 'Coupe', basePrice: 180000000, topSpeed: 400, torque: 1150 },
+            { name: 'Mono R', tier: 4, body: 'Spor', basePrice: 170000000, topSpeed: 310, torque: 650 },
+            { name: 'Vision Gran Turismo', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 395, torque: 1300 },
+            { name: 'Ultimate Series X', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 415, torque: 1500 },
+            { name: 'GTS Heritage', tier: 4, body: 'Coupe', basePrice: 400000000, topSpeed: 425, torque: 1600 },
+            { name: 'Project Storm', tier: 4, body: 'Spor', basePrice: 500000000, topSpeed: 440, torque: 1800 }
+        ]
+    },
+    {
+        name: 'Bugotti Noire', country: 'Fransa', prestige: 10, logo: '/img/brands/bugotti.svg', factory: 'Fransa',
+        models: [
+            { name: 'Shıron Profilée', tier: 4, body: 'Coupe', basePrice: 100000000, topSpeed: 380, torque: 1600 },
+            { name: 'Centodieci', tier: 4, body: 'Coupe', basePrice: 120000000, topSpeed: 380, torque: 1600 },
+            { name: 'EB110 Tribute', tier: 4, body: 'Coupe', basePrice: 110000000, topSpeed: 350, torque: 1400 },
+            { name: 'Atlantic Concept', tier: 4, body: 'Coupe', basePrice: 200000000, topSpeed: 400, torque: 1700 },
+            { name: 'Vision Le Mans', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 420, torque: 1800 },
+            { name: 'La Finale', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 410, torque: 1750 },
+            { name: 'Type 57 Reimagined', tier: 4, body: 'Coupe', basePrice: 350000000, topSpeed: 380, torque: 1600 },
+            { name: 'Royale Edition', tier: 4, body: 'Sedan', basePrice: 400000000, topSpeed: 350, torque: 1500 },
+            { name: 'Tourbillon', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 445, torque: 1800 },
+            { name: 'Tourbillon Sur Mesure', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 445, torque: 1850 },
+            { name: 'Tourbillon World Record', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 460, torque: 1900 },
+            { name: 'Mistral Heritage', tier: 4, body: 'Cabrio', basePrice: 130000000, topSpeed: 420, torque: 1600 },
+            { name: 'Divo Evolution', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 385, torque: 1650 },
+            { name: 'Bolide Stradale', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 500, torque: 1850 },
+            { name: 'W16 Final Song', tier: 4, body: 'Spor', basePrice: 500000000, topSpeed: 470, torque: 2000 }
+        ]
+    },
+    {
+        name: 'Pugani Exclusive', country: 'İtalya', prestige: 10, logo: '/img/brands/pugani.svg', factory: 'İtalya',
+        models: [
+            { name: 'Zundo F', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 350, torque: 850 },
+            { name: 'Zundo Revolución', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 360, torque: 900 },
+            { name: 'Zundo R', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 355, torque: 870 },
+            { name: 'Huayro Roadster', tier: 4, body: 'Cabrio', basePrice: 130000000, topSpeed: 375, torque: 1000 },
+            { name: 'Huayro Tricolore', tier: 4, body: 'Spor', basePrice: 140000000, topSpeed: 370, torque: 1050 },
+            { name: 'Imola', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 365, torque: 1020 },
+            { name: 'Codalunga', tier: 4, body: 'Coupe', basePrice: 160000000, topSpeed: 360, torque: 980 },
+            { name: 'Utopıa Roadster', tier: 4, body: 'Cabrio', basePrice: 170000000, topSpeed: 355, torque: 1100 },
+            { name: 'Vision C', tier: 4, body: 'Coupe', basePrice: 200000000, topSpeed: 380, torque: 1150 },
+            { name: 'Huayro Artemis', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 390, torque: 1200 },
+            { name: 'Hermes Edition', tier: 4, body: 'Coupe', basePrice: 300000000, topSpeed: 375, torque: 1100 },
+            { name: 'Dinastia', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 395, torque: 1300 },
+            { name: 'Opus Magnum', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 410, torque: 1400 },
+            { name: 'Eternità', tier: 4, body: 'Coupe', basePrice: 500000000, topSpeed: 415, torque: 1500 }
+        ]
+    },
+    {
+        name: 'Konigsegg Absolute', country: 'İsveç', prestige: 10, logo: '/img/brands/konigsegg.svg', factory: 'İsveç',
+        models: [
+            { name: 'CC850', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 400, torque: 1385 },
+            { name: 'One:1', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 440, torque: 1371 },
+            { name: 'Agero R', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 440, torque: 1160 },
+            { name: 'CCXR Trevita', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 410, torque: 1100 },
+            { name: 'Jısko Absolut', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 531, torque: 1500 },
+            { name: 'Jısko Attack', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 450, torque: 1500 },
+            { name: 'Gemaro II', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 410, torque: 1700 },
+            { name: 'Regaro RS', tier: 4, body: 'Spor', basePrice: 160000000, topSpeed: 425, torque: 1500 },
+            { name: 'Agero One', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 450, torque: 1400 },
+            { name: 'CCR Heritage', tier: 4, body: 'Coupe', basePrice: 170000000, topSpeed: 395, torque: 1180 },
+            { name: 'Thor Concept', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 470, torque: 1600 },
+            { name: 'Vision Zero', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 480, torque: 1700 },
+            { name: 'Freevalve Hyper', tier: 4, body: 'Spor', basePrice: 400000000, topSpeed: 490, torque: 1800 },
+            { name: 'Megacar', tier: 4, body: 'Spor', basePrice: 500000000, topSpeed: 500, torque: 2000 }
+        ]
+    },
+    {
+        name: 'Astin Morton Legends', country: 'İngiltere', prestige: 8, logo: '/img/brands/astinmorton.svg', factory: 'İngiltere',
+        models: [
+            { name: 'Valkirya AMR Pro', tier: 4, body: 'Spor', basePrice: 100000000, topSpeed: 405, torque: 1000 },
+            { name: 'Vulken AMR Pro', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 360, torque: 800 },
+            { name: 'DBR22', tier: 4, body: 'Cabrio', basePrice: 110000000, topSpeed: 340, torque: 700 },
+            { name: 'Victor', tier: 4, body: 'Coupe', basePrice: 130000000, topSpeed: 335, torque: 750 },
+            { name: 'CC100', tier: 4, body: 'Cabrio', basePrice: 140000000, topSpeed: 340, torque: 780 },
+            { name: 'Valhalla', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 370, torque: 950 },
+            { name: 'Vanquish Vision', tier: 4, body: 'Coupe', basePrice: 160000000, topSpeed: 368, torque: 900 },
+            { name: 'DB11 Heritage', tier: 4, body: 'Coupe', basePrice: 105000000, topSpeed: 330, torque: 700 },
+            { name: 'V12 Speedster', tier: 4, body: 'Cabrio', basePrice: 115000000, topSpeed: 310, torque: 700 },
+            { name: 'One-77 Tribute', tier: 4, body: 'Coupe', basePrice: 200000000, topSpeed: 354, torque: 750 },
+            { name: 'Zagato Collection', tier: 4, body: 'Coupe', basePrice: 250000000, topSpeed: 345, torque: 700 },
+            { name: 'Project 003', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 380, torque: 1000 },
+            { name: 'Heritage Racing', tier: 4, body: 'Spor', basePrice: 350000000, topSpeed: 375, torque: 950 },
+            { name: 'Grand Tourer X', tier: 4, body: 'Coupe', basePrice: 400000000, topSpeed: 340, torque: 850 }
+        ]
+    },
+    {
+        name: 'Bintley Royal', country: 'İngiltere', prestige: 9, logo: '/img/brands/bintley.svg', factory: 'İngiltere',
+        models: [
+            { name: 'Bacalar', tier: 4, body: 'Cabrio', basePrice: 100000000, topSpeed: 320, torque: 900 },
+            { name: 'Batur', tier: 4, body: 'Coupe', basePrice: 110000000, topSpeed: 325, torque: 1000 },
+            { name: 'Blower Continuation', tier: 4, body: 'Coupe', basePrice: 120000000, topSpeed: 225, torque: 600 },
+            { name: 'Speed Six Tribute', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 280, torque: 750 },
+            { name: 'EXP 100 GT', tier: 4, body: 'Coupe', basePrice: 130000000, topSpeed: 300, torque: 1200 },
+            { name: 'Continental One-Off', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 335, torque: 900 },
+            { name: 'Mullıner Bespoke', tier: 4, body: 'Sedan', basePrice: 160000000, topSpeed: 310, torque: 900 },
+            { name: 'Arnage Heritage', tier: 4, body: 'Sedan', basePrice: 170000000, topSpeed: 305, torque: 900 },
+            { name: 'State Limousine', tier: 4, body: 'Sedan', basePrice: 200000000, topSpeed: 280, torque: 850 },
+            { name: 'Racing Legacy', tier: 4, body: 'Coupe', basePrice: 250000000, topSpeed: 340, torque: 950 },
+            { name: 'Diamond Edition', tier: 4, body: 'Sedan', basePrice: 300000000, topSpeed: 310, torque: 950 },
+            { name: 'Pinnacle', tier: 4, body: 'Sedan', basePrice: 350000000, topSpeed: 320, torque: 1000 },
+            { name: 'Crown Imperial', tier: 4, body: 'Sedan', basePrice: 500000000, topSpeed: 330, torque: 1100 }
+        ]
+    },
+    {
+        name: 'Rolss-Royz Bespoke', country: 'İngiltere', prestige: 10, logo: '/img/brands/rolssroyz.svg', factory: 'İngiltere',
+        models: [
+            { name: 'Boat Tail', tier: 4, body: 'Cabrio', basePrice: 200000000, topSpeed: 250, torque: 900 },
+            { name: 'Sweptail', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 250, torque: 900 },
+            { name: 'Arcadia', tier: 4, body: 'Sedan', basePrice: 130000000, topSpeed: 250, torque: 900 },
+            { name: 'Pearl Concept', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 255, torque: 920 },
+            { name: 'La Rose Noire', tier: 4, body: 'Coupe', basePrice: 300000000, topSpeed: 250, torque: 950 },
+            { name: 'Fantom Tempus', tier: 4, body: 'Sedan', basePrice: 120000000, topSpeed: 250, torque: 900 },
+            { name: 'Fantom Syntopia', tier: 4, body: 'Sedan', basePrice: 180000000, topSpeed: 250, torque: 920 },
+            { name: 'Silver Ghost Tribute', tier: 4, body: 'Sedan', basePrice: 250000000, topSpeed: 220, torque: 800 },
+            { name: 'Droptail', tier: 4, body: 'Cabrio', basePrice: 350000000, topSpeed: 250, torque: 950 },
+            { name: 'Amethyst', tier: 4, body: 'Cabrio', basePrice: 400000000, topSpeed: 250, torque: 960 },
+            { name: 'Celestial Phantom', tier: 4, body: 'Sedan', basePrice: 500000000, topSpeed: 260, torque: 1000 },
+            { name: 'Koa Phantom', tier: 4, body: 'Sedan', basePrice: 100000000, topSpeed: 250, torque: 900 },
+            { name: 'Spectra Dawn', tier: 4, body: 'Cabrio', basePrice: 110000000, topSpeed: 250, torque: 900 },
+            { name: 'Wraith Eagle VIII', tier: 4, body: 'Coupe', basePrice: 105000000, topSpeed: 250, torque: 870 },
+            { name: 'Ghost Zenith', tier: 4, body: 'Sedan', basePrice: 108000000, topSpeed: 250, torque: 850 },
+            { name: 'Cullinan Black Badge', tier: 4, body: 'SUV', basePrice: 115000000, topSpeed: 250, torque: 900 },
+            { name: 'Phantom VIII Ewb', tier: 4, body: 'Sedan', basePrice: 160000000, topSpeed: 250, torque: 940 },
+            { name: 'Royal Suite', tier: 4, body: 'Sedan', basePrice: 170000000, topSpeed: 245, torque: 880 }
+        ]
+    },
+    {
+        name: 'Mazarati Fuori Serie', country: 'İtalya', prestige: 8, logo: '/img/brands/mazarati.svg', factory: 'İtalya',
+        models: [
+            { name: 'MC21 Cielo', tier: 4, body: 'Cabrio', basePrice: 100000000, topSpeed: 320, torque: 730 },
+            { name: 'MC21 Notte', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 325, torque: 740 },
+            { name: 'Tipo Folgore', tier: 4, body: 'Sedan', basePrice: 105000000, topSpeed: 310, torque: 800 },
+            { name: 'GT2 Stradale', tier: 4, body: 'Coupe', basePrice: 120000000, topSpeed: 330, torque: 750 },
+            { name: 'Bora Tribute', tier: 4, body: 'Coupe', basePrice: 130000000, topSpeed: 315, torque: 700 },
+            { name: 'Merak SS', tier: 4, body: 'Coupe', basePrice: 140000000, topSpeed: 300, torque: 650 },
+            { name: '3500 GT Heritage', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 280, torque: 600 },
+            { name: 'MC13 Concept', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 350, torque: 850 },
+            { name: 'Alfieri Vision', tier: 4, body: 'Coupe', basePrice: 160000000, topSpeed: 310, torque: 750 },
+            { name: 'Corse Edition', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 340, torque: 800 },
+            { name: 'Tipo Veloce', tier: 4, body: 'Sedan', basePrice: 180000000, topSpeed: 320, torque: 780 },
+            { name: 'Anniversary 110', tier: 4, body: 'Coupe', basePrice: 300000000, topSpeed: 335, torque: 820 }
+        ]
+    },
+    // =================== MEVCUT PREMIUM MARKALARA ÜIST MODELLER ===================
+    {
+        name: 'BNW Motorsport', country: 'Almanya', prestige: 6, logo: '/img/brands/bnw.svg', factory: 'Almanya',
+        models: [
+            { name: 'XM Label Red', tier: 4, body: 'SUV', basePrice: 100000000, topSpeed: 290, torque: 750 },
+            { name: 'M5 CS Heritage', tier: 4, body: 'Sedan', basePrice: 110000000, topSpeed: 305, torque: 770 },
+            { name: 'M8 Competition Heritage', tier: 4, body: 'Coupe', basePrice: 105000000, topSpeed: 305, torque: 750 },
+            { name: 'Z8 Roadster Tribute', tier: 4, body: 'Cabrio', basePrice: 120000000, topSpeed: 290, torque: 700 },
+            { name: 'M1 Procar Heritage', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 280, torque: 650 },
+            { name: '3.0 CSL Hommage R', tier: 4, body: 'Coupe', basePrice: 130000000, topSpeed: 300, torque: 720 },
+            { name: 'Vision M Next', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 310, torque: 800 },
+            { name: 'i9 Concept', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 330, torque: 1000 },
+            { name: 'M Hybrid V8', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 320, torque: 900 },
+            { name: 'Nazca C2', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 340, torque: 850 }
+        ]
+    },
+    {
+        name: 'Merbedes-Binz AMG', country: 'Almanya', prestige: 6, logo: '/img/brands/merbedesbinz.svg', factory: 'Almanya',
+        models: [
+            { name: 'AMG ONE', tier: 4, body: 'Spor', basePrice: 150000000, topSpeed: 352, torque: 1000 },
+            { name: 'AMG Project Two', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 360, torque: 1100 },
+            { name: 'SLR McLaren Revival', tier: 4, body: 'Coupe', basePrice: 130000000, topSpeed: 334, torque: 830 },
+            { name: 'CLK GTR Heritage', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 344, torque: 900 },
+            { name: 'Vision EQS', tier: 4, body: 'Sedan', basePrice: 110000000, topSpeed: 300, torque: 900 },
+            { name: 'Vision AVTR', tier: 4, body: 'Spor', basePrice: 300000000, topSpeed: 310, torque: 1200 },
+            { name: 'G900 Brabus', tier: 4, body: 'SUV', basePrice: 120000000, topSpeed: 280, torque: 1250 },
+            { name: 'S680 Maybach', tier: 4, body: 'Sedan', basePrice: 100000000, topSpeed: 250, torque: 900 },
+            { name: 'Maybach Exelero', tier: 4, body: 'Coupe', basePrice: 180000000, topSpeed: 350, torque: 1020 },
+            { name: 'Vision Duet', tier: 4, body: 'Cabrio', basePrice: 350000000, topSpeed: 320, torque: 1000 },
+            { name: 'Mythos PureSpeed', tier: 4, body: 'Cabrio', basePrice: 140000000, topSpeed: 315, torque: 850 },
+            { name: 'SL73 AMG Heritage', tier: 4, body: 'Cabrio', basePrice: 160000000, topSpeed: 305, torque: 830 }
+        ]
+    },
+    {
+        name: 'Oudi RSport', country: 'Almanya', prestige: 6, logo: '/img/brands/oudi.svg', factory: 'Almanya',
+        models: [
+            { name: 'RS e-tron GT Ice', tier: 4, body: 'Sedan', basePrice: 100000000, topSpeed: 305, torque: 830 },
+            { name: 'R9 V10 Decennium', tier: 4, body: 'Spor', basePrice: 110000000, topSpeed: 330, torque: 580 },
+            { name: 'R9 GT Performance', tier: 4, body: 'Spor', basePrice: 120000000, topSpeed: 333, torque: 600 },
+            { name: 'R9 LMS GT3 Road', tier: 4, body: 'Spor', basePrice: 130000000, topSpeed: 320, torque: 550 },
+            { name: 'Avus Quattro Concept', tier: 4, body: 'Coupe', basePrice: 150000000, topSpeed: 310, torque: 700 },
+            { name: 'RSQ e-tron', tier: 4, body: 'SUV', basePrice: 105000000, topSpeed: 290, torque: 950 },
+            { name: 'Rosemeyer Concept', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 350, torque: 900 },
+            { name: 'Skysphere Concept', tier: 4, body: 'Cabrio', basePrice: 180000000, topSpeed: 310, torque: 800 },
+            { name: 'Grandsphere Concept', tier: 4, body: 'Sedan', basePrice: 160000000, topSpeed: 300, torque: 850 },
+            { name: 'Activesphere Sport', tier: 4, body: 'SUV', basePrice: 140000000, topSpeed: 295, torque: 900 },
+            { name: 'RS10 Vision', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 350, torque: 1000 },
+            { name: 'Ur-Quattro Tribute', tier: 4, body: 'Coupe', basePrice: 170000000, topSpeed: 290, torque: 650 }
+        ]
+    },
+    {
+        name: 'Lend Ruver SVR', country: 'İngiltere', prestige: 7, logo: '/img/brands/lendruver.svg', factory: 'İngiltere',
+        models: [
+            { name: 'Renge Ruver SV Autobiography', tier: 4, body: 'SUV', basePrice: 100000000, topSpeed: 260, torque: 800 },
+            { name: 'Renge Ruver SV Coupé', tier: 4, body: 'SUV', basePrice: 110000000, topSpeed: 265, torque: 830 },
+            { name: 'Renge Ruver Astronaut Edition', tier: 4, body: 'SUV', basePrice: 120000000, topSpeed: 250, torque: 800 },
+            { name: 'Defander V9 Trophy', tier: 4, body: 'SUV', basePrice: 105000000, topSpeed: 240, torque: 750 },
+            { name: 'Renge Ruver Electric', tier: 4, body: 'SUV', basePrice: 130000000, topSpeed: 280, torque: 1000 },
+            { name: 'Series I Heritage Edition', tier: 4, body: 'SUV', basePrice: 150000000, topSpeed: 200, torque: 600 },
+            { name: 'Renge Ruver Diamond', tier: 4, body: 'SUV', basePrice: 200000000, topSpeed: 265, torque: 850 },
+            { name: 'Renge Ruver Bespoke', tier: 4, body: 'SUV', basePrice: 250000000, topSpeed: 270, torque: 900 },
+            { name: 'Safari Concept', tier: 4, body: 'SUV', basePrice: 140000000, topSpeed: 230, torque: 700 },
+            { name: 'Royal Collection', tier: 4, body: 'SUV', basePrice: 300000000, topSpeed: 260, torque: 850 }
+        ]
+    },
+    {
+        name: 'Tisla Plaid', country: 'ABD', prestige: 7, logo: '/img/brands/tisla.svg', factory: 'ABD',
+        models: [
+            { name: 'Roadster 2.0', tier: 4, body: 'Cabrio', basePrice: 100000000, topSpeed: 410, torque: 1100 },
+            { name: 'Roadster SpaceX', tier: 4, body: 'Cabrio', basePrice: 150000000, topSpeed: 400, torque: 1200 },
+            { name: 'Semi Performance', tier: 4, body: 'Pickup', basePrice: 105000000, topSpeed: 220, torque: 1500 },
+            { name: 'Model Z Plaid+', tier: 4, body: 'Sedan', basePrice: 110000000, topSpeed: 330, torque: 1050 },
+            { name: 'Model W Plaid', tier: 4, body: 'SUV', basePrice: 120000000, topSpeed: 310, torque: 1100 },
+            { name: 'Cybırtruck Ultra', tier: 4, body: 'Pickup', basePrice: 130000000, topSpeed: 250, torque: 1350 },
+            { name: 'Master Plan Concept', tier: 4, body: 'Spor', basePrice: 200000000, topSpeed: 370, torque: 1500 },
+            { name: 'Prototype Alpha', tier: 4, body: 'Spor', basePrice: 250000000, topSpeed: 390, torque: 1600 },
+            { name: 'Bot Racer', tier: 4, body: 'Spor', basePrice: 180000000, topSpeed: 350, torque: 1400 },
+            { name: 'Omega Sedan', tier: 4, body: 'Sedan', basePrice: 160000000, topSpeed: 340, torque: 1200 }
+        ]
     }
 ];
 

@@ -169,8 +169,203 @@ async function startMasterDayLoop() {
         }
 
         nextResetTime = Date.now() + 30000;
-        // 4. Günlük Risk Azalması ve Haciz Kontrolü
+
+        // 4. Loto Çekilişi Kontrolü
+        try {
+            const [lotteries] = await pool.query('SELECT * FROM lottery WHERE status = "active" AND draw_date <= NOW()');
+            if (lotteries.length > 0) {
+                for (const loto of lotteries) {
+                    const [tickets] = await pool.query('SELECT player_id FROM lottery_tickets WHERE lottery_id = ?', [loto.id]);
+
+                    if (tickets.length < 10) {
+                        await pool.query('UPDATE lottery SET status = "cancelled" WHERE id = ?', [loto.id]);
+
+                        // İadeleri yap
+                        for (const ticket of tickets) {
+                            await pool.query('UPDATE player SET balance = balance + ? WHERE id = ?', [loto.ticket_price, ticket.player_id]);
+                            await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "income", ?, "Loto İptali İadesi")', [ticket.player_id, loto.ticket_price]);
+                            await pool.query('INSERT INTO notifications (player_id, type, title, message) VALUES (?, "system", "Loto İptal Edildi", "Yeterli katılım olmadığı için loto iptal edildi. Bilet paranız iade edildi.")', [ticket.player_id]);
+                        }
+                    } else {
+                        // Çekiliş Yap
+                        const winner = tickets[Math.floor(Math.random() * tickets.length)];
+                        const winAmount = Math.floor(loto.total_pool * 0.5);
+                        const taxAmount = loto.total_pool - winAmount;
+
+                        await pool.query('UPDATE lottery SET status = "completed", winner_id = ? WHERE id = ?', [winner.player_id, loto.id]);
+                        await pool.query('UPDATE player SET balance = balance + ? WHERE id = ?', [winAmount, winner.player_id]);
+                        await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "income", ?, "Loto Büyük İkramiyesi!")', [winner.player_id, winAmount]);
+                        await addTreasuryIncome(pool, taxAmount, "Loto Vergisi");
+                        await pool.query('INSERT INTO notifications (player_id, type, title, message) VALUES (?, "system", "Loto Büyük İkramiyesi!", ?)', [winner.player_id, `Tebrikler! Loto büyük ikramiyesi olan ${winAmount.toLocaleString('tr-TR')}₺ kazandınız!`]);
+                        if (io) io.emit('loto_winner', { winner_id: winner.player_id, amount: winAmount });
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Loto döngüsü hatası:', err);
+        }
+
+        // 5. Müzayede (Auction) Kontrolü
+        try {
+            const [activeAuctions] = await pool.query('SELECT * FROM auctions WHERE status = "active" ORDER BY id DESC LIMIT 1');
+
+            if (activeAuctions.length > 0) {
+                const auc = activeAuctions[0];
+                if (new Date() >= new Date(auc.end_time)) {
+                    // Müzayede bitti
+                    await pool.query('UPDATE auctions SET status = "completed" WHERE id = ?', [auc.id]);
+
+                    if (auc.highest_bidder_id) {
+                        // Kazanan var
+                        const [c] = await pool.query('SELECT * FROM cars WHERE id = ?', [auc.car_id]);
+                        if (c.length > 0) {
+                            const car = c[0];
+                            const hpStatus = 100;
+                            const dmgStatus = 'Kusursuz';
+                            const parts = generateParts();
+
+                            await pool.query('INSERT INTO player_cars (player_id, car_id, buy_price, parts_status, damage_status, motor_health, buy_date) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+                                [auc.highest_bidder_id, car.id, auc.current_bid, JSON.stringify(parts), dmgStatus, hpStatus]);
+
+                            await pool.query('UPDATE cars SET owner_type = "player", is_available = 0 WHERE id = ?', [car.id]);
+
+                            // Hazineye Müzayede geliri
+                            await addTreasuryIncome(pool, auc.current_bid, "Sistem Müzayede Satış Geliri");
+
+                            await pool.query('INSERT INTO notifications (player_id, type, title, message) VALUES (?, "system", "Müzayede Kazanıldı!", "Tebrikler! Müzayedeyi kazandınız ve efsanevi araç garajınıza eklendi.")', [auc.highest_bidder_id]);
+                        }
+                    } else {
+                        // Kimse teklif vermedi, aracı sistemde tut veya is_available=false yap
+                        await pool.query('UPDATE cars SET is_available = 0 WHERE id = ?', [auc.car_id]);
+                    }
+                    if (io) io.emit('auction_update', { message: 'Müzayede sona erdi!' });
+                }
+            } else {
+                // Yeni müzayede oluşturma olasılığı (%20 şans - 60 sn döngü)
+                if (Math.random() < 0.20) {
+                    const [models] = await pool.query('SELECT m.id, m.base_price, m.brand_id FROM models m JOIN brands b ON m.brand_id=b.id WHERE m.tier >= 6 ORDER BY RAND() LIMIT 1');
+                    if (models.length > 0) {
+                        const m = models[0];
+                        const engine = await getEngineForModel(pool, m.id);
+                        const hp = engine ? await getHorsepowerForEngine(pool, engine.id) : 500;
+                        const year = randomBetween(2018, 2024);
+
+                        // Sisteme bir araba yarat
+                        const [cRes] = await pool.query('INSERT INTO cars (brand_id, model_id, year, km, engine_id, horsepower, price, owner_type, is_available) VALUES (?, ?, ?, 0, ?, ?, ?, "system", 0)',
+                            [m.brand_id, m.id, year, engine ? engine.id : null, hp, m.base_price]);
+
+                        const carId = cRes.insertId;
+                        const starterPrice = Math.round(m.base_price * 0.5); // %50 indirimli başlar
+                        const endTime = new Date(Date.now() + 10 * 60 * 1000); // 10 dakika sürer
+
+                        await pool.query('INSERT INTO auctions (car_id, starter_price, current_bid, end_time) VALUES (?, ?, 0, ?)', [carId, starterPrice, endTime]);
+
+                        if (io) io.emit('auction_update', { message: 'Yeni bir efsanevi araç müzayedeye çıktı!' });
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Müzayede döngüsü hatası:', err);
+        }
+
+        // 6. Günlük Risk Azalması ve Haciz Kontrolü
         await processRiskAndPolice();
+
+        // 7. Dinamik Krizler (Endgame Money Sink)
+        try {
+            // %5 ihtimalle global kriz tetiklenir
+            if (Math.random() < 0.05) {
+                // 50 Milyon ₺'den fazla parası olan zengin oyuncuları bul
+                const [richPlayers] = await pool.query('SELECT id, balance FROM player WHERE balance > 50000000');
+                if (richPlayers.length > 0) {
+                    const crisisTypes = [
+                        { name: "Küresel Tedarik Krizi", desc: "Tedarik zincirindeki çöküş nedeniyle lüks araç sigorta maliyetleriniz astronomik arttı!" },
+                        { name: "Vergi Müfettişi Baskını", desc: "Maliye Bakanlığı ani denetim yaptı ve şirketinize devasa bir ceza kesti!" },
+                        { name: "Borsa Çöküşü", desc: "Otomotiv hisseleri çakıldı, şirketinizin nakit rezervleri ciddi eridi!" },
+                        { name: "Mega Fabrika Grevi", desc: "İşçileriniz global bir greve gitti, zararı kapatmak için sendikaya devasa tazminatlar ödendi!" }
+                    ];
+
+                    for (const rp of richPlayers) {
+                        const crisisPercent = Math.floor(Math.random() * 16) + 10; // %10 to %25
+                        const crisisAmount = Math.floor(rp.balance * (crisisPercent / 100));
+                        const crisis = crisisTypes[Math.floor(Math.random() * crisisTypes.length)];
+
+                        await pool.query('UPDATE player SET balance = balance - ? WHERE id = ?', [crisisAmount, rp.id]);
+                        await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "expense", ?, ?)', [rp.id, crisisAmount, `KRİZ: ${crisis.name}`]);
+                        await pool.query('INSERT INTO notifications (player_id, type, title, message) VALUES (?, "system", ?, ?)', [rp.id, `🚨 KRİZ: ${crisis.name}`, `${crisis.desc} Hesabınızdan tam ${crisisAmount.toLocaleString('tr-TR')} ₺ (%${crisisPercent}) silindi!`]);
+                        await addTreasuryIncome(pool, crisisAmount, `Kriz Fonu Kaptırması: ${rp.id}`);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Dinamik Kriz hatası:', err);
+        }
+
+        // 8. Fatura / Vergi Oluşturma (24 saatte bir = 2880 tick)
+        if (dayCounter > 0 && dayCounter % 2880 === 0) {
+            try {
+                // Galeri İşletme
+                await pool.query(`
+                    INSERT INTO player_bills (player_id, type, amount, due_date)
+                    SELECT id, 'Galeri Kira & İşletme', ROUND(level * 2500 + 5000), DATE_ADD(NOW(), INTERVAL 72 HOUR)
+                    FROM player
+                `);
+
+                // Fabrika Vergisi
+                await pool.query(`
+                    INSERT INTO player_bills (player_id, type, amount, due_date)
+                    SELECT player_id, 'Mega Fabrika Vergisi', (level * 250000), DATE_ADD(NOW(), INTERVAL 72 HOUR)
+                    FROM endgame_factories
+                `);
+
+                // Create a notification for these bills
+                await pool.query(`
+                    INSERT INTO notifications (player_id, type, title, message)
+                    SELECT id, 'system', 'Yeni Faturalar & Vergiler', 'Banka hesabınıza yeni Mülk/İşletme vergileriniz yansıtıldı. Lütfen 72 saat içinde ödeyiniz.'
+                    FROM player
+                `);
+            } catch (err) {
+                console.error('Fatura oluşturma hatası:', err);
+            }
+        }
+
+        // 9. Gecikmiş Fatura Kontrolü & Ceza (Her 15 dakikada bir kontrol = 30 tick)
+        if (dayCounter > 0 && dayCounter % 30 === 0) {
+            try {
+                // Zamanı geçen faturalara %10 faiz ekle ve durumunu overdue yap, süreyi 24 saat uzat
+                await pool.query(`
+                    UPDATE player_bills 
+                    SET status = 'overdue', 
+                        amount = amount + ROUND(amount * 0.10),
+                        due_date = DATE_ADD(NOW(), INTERVAL 24 HOUR)
+                    WHERE status = 'pending' AND due_date < NOW()
+                `);
+
+                // Hali hazırda overdue olan ve süresi tekrar geçenlere bir %10 daha faiz binmesi (Cezalandırıcı ekonomi)
+                await pool.query(`
+                    UPDATE player_bills 
+                    SET amount = amount + ROUND(amount * 0.10),
+                        due_date = DATE_ADD(NOW(), INTERVAL 24 HOUR)
+                    WHERE status = 'overdue' AND due_date < NOW()
+                `);
+
+                // Hacizlik / ceza durumu (is_seized) güncellemesi
+                await pool.query(`
+                    UPDATE player p
+                    SET p.is_seized = 1
+                    WHERE EXISTS (SELECT 1 FROM player_bills pb WHERE pb.player_id = p.id AND pb.status = 'overdue')
+                `);
+
+                // Hacizlik / ceza durumu bildirim
+                const [overduePlayers] = await pool.query(`SELECT DISTINCT player_id FROM player_bills WHERE status = 'overdue'`);
+                for (const op of overduePlayers) {
+                    await pool.query('INSERT INTO notifications (player_id, type, title, message) VALUES (?, "system", "Gecikmiş Fatura Cezası", "Ödenmemiş faturalarınıza %5 gecikme faizi eklendi! Ticari hareketleriniz (araç alma, teklif verme vb.) kısıtlanmıştır! Lütfen Banka üzerinden borcunuzu ödeyin.")', [op.player_id]);
+                }
+            } catch (err) {
+                console.error('Fatura ceza hatası:', err);
+            }
+        }
+
     } catch (err) {
         console.error('Master loop hatası:', err);
     }

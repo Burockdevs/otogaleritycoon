@@ -279,15 +279,33 @@
             <span class="sidebar-icon"><i class="fa-solid fa-chart-line"></i></span><span
                 class="sidebar-label">Kâr/Zarar</span>
         </button>
+        <button class="sidebar-btn" data-page="loto" onclick="navigateTo('loto')">
+            <span class="sidebar-icon"><i class="fa-solid fa-ticket"></i></span><span class="sidebar-label">Günlük
+                Loto</span>
+        </button>
 
         <div class="sidebar-section-title">ÜRETİM</div>
         <button class="sidebar-btn" data-page="factory" onclick="navigateTo('factory')">
-            <span class="sidebar-icon"><i class="fa-solid fa-industry"></i></span><span
-                class="sidebar-label">Fabrika</span>
+            <span class="sidebar-icon"><i class="fa-solid fa-industry"></i></span><span class="sidebar-label">Fabrika
+                (Toptan)</span>
+        </button>
+        <button class="sidebar-btn" data-page="factoryv2" onclick="navigateTo('factoryv2')">
+            <span class="sidebar-icon"><i class="fa-solid fa-city"></i></span><span class="sidebar-label">Mega
+                Fabrika</span>
         </button>
         <button class="sidebar-btn" data-page="custom" onclick="navigateTo('custom')">
             <span class="sidebar-icon"><i class="fa-solid fa-palette"></i></span><span class="sidebar-label">Özel
                 Araç</span>
+        </button>
+
+        <div class="sidebar-section-title">GLOBAL</div>
+        <button class="sidebar-btn" data-page="port" onclick="navigateTo('port')">
+            <span class="sidebar-icon"><i class="fa-solid fa-ship"></i></span><span class="sidebar-label">Uluslararası
+                Liman</span>
+        </button>
+        <button class="sidebar-btn" data-page="auction" onclick="navigateTo('auction')">
+            <span class="sidebar-icon"><i class="fa-solid fa-gavel"></i></span><span class="sidebar-label">Müzayede
+                Salonu</span>
         </button>
 
         <div class="sidebar-section-title">DİĞER</div>
@@ -427,34 +445,69 @@
             <div id="bilgibankasiContent" style="padding: 20px;">
                 <div class="admin-grid" style="display:grid; grid-template-columns: 1fr; gap:20px;">
                     <div class="admin-card">
-                        <h3><i class="fa-solid fa-scale-balanced"></i> Ticaret ve Ekonomi</h3>
+                        <h3><i class="fa-solid fa-scale-balanced"></i> Ticaret ve Ekonomi (GÜNCELLENDİ)</h3>
                         <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
                             <strong>Satın Alma & İlan:</strong> Araçları Pazar'dan (Keşfet) satın alıp İlanlar
-                            sekmesinden satışa koyabilirsiniz. İlan fiyatını piyasanın %15-35 üstünde tutarsanız kâr
-                            marjınız artar ancak NPC teklifleri beklemeniz gerekebilir. <span
-                                style="color:var(--gold)">Unutmayın, ilanlarınıza her 30 saniyede bir (her oyun gününde)
-                                yeni NPC teklifleri gelir!</span><br><br>
-                            <strong>Expertiz (Ekspertiz):</strong> İkinci el araç alırken mutlaka Inspect (Expertiz)
-                            yaptırın. Hasar durumuna göre fiyatta pazarlık edebilir, hurda araçların maliyetini önceden
-                            kestirebilirsiniz.<br><br>
-                            <strong>Piyasa Trendleri:</strong> Otomobil piyasası hareketlidir. "Çip Krizi" çıktığında
-                            fiyatlar tavan yaparken, "Büyük Çöküş" döneminde düşer. Fırsatları değerlendirmek için
-                            bildirmlere göz atın!
+                            sekmesinden satışa koyabilirsiniz. Dikkat: Seviyeniz arttıkça ödediğiniz <strong>Devlet
+                                Vergisi</strong> (%5'ten %30'a kadar) artar.<br><br>
+                            <strong>Tamir ve Hasar:</strong> <span style="color:var(--danger)">Artık tamir etmek eskisi
+                                kadar kârlı değil!</span> Hasarlı bir aracı onarmak ciddi paranıza mâl olur. Büyük
+                            kârlar elde etmek için aracı doğru fiyata NPC'ye satmalı ve piyasa trendlerini takip
+                            etmelisiniz.
                         </p>
                     </div>
 
                     <div class="admin-card">
-                        <h3><i class="fa-solid fa-building-columns"></i> Bankacılık Sistemi</h3>
+                        <h3><i class="fa-solid fa-industry"></i> Fabrika Kurulumu (YENİ)</h3>
                         <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
-                            <strong>Krediler:</strong> Nakit sıkıntınız olduğunda veya iyi bir araç fırsatı denk
-                            geldiğinde Banka'dan kredi çekebilirsiniz. Ancak çektiğiniz kredi için her oyun gününde
-                            (veya reelde her ödeme döngüsünde) banka faiz kesintisi yapacaktır.<br><br>
-                            <strong>Araç Taksitleri:</strong> Araç satışlarında 3, 6, 9 veya 12 Taksit seçeneklerini
-                            kullanabilirsiniz. Taksitli satışlarda ek faiz (örneğin %30) sayesinde aracınızı daha yüksek
-                            fiyata satmış olursunuz. Aylık ödemeleriniz doğrudan bakiyenize oyun döngüsü ile
-                            yatar.<br><br>
-                            <strong>Haciz:</strong> Borçlarınızı 3-5 günden fazla geciktirirseniz, sistem araçlarınıza
-                            otomatik haciz koyabilir ve ucuz fiyata galerinizden çekebilir.
+                            <strong>Açıklama:</strong> Milyarlarca liralık dev yatırımla kendi fabrikanızı inşa
+                            edebilirsiniz. Fabrika Ar-Ge'sini geliştirdikçe (Hız, Prestij vb.) ürettiğiniz araçların
+                            kalitesi artar.<br><br>
+                            <strong>Satış:</strong> Fabrikada üretilen araçlar sadece zengin NPC'lere satılır. Maliyeti
+                            yüksek olsa da uzun vadede en büyük gelir kaynağınız olacaktır.
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-anchor"></i> Liman & İhracat (YENİ)</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            <strong>Gizemli Konteyner (Gacha):</strong> Limandan yüksek meblağlar ödeyerek sürpriz
+                            konteynerler satın alabilirsiniz. İçinden efsanevi hiper arabalar veya sıradan klasik
+                            araçlar çıkabilir.<br><br>
+                            <strong>İhracat Görevleri:</strong> Devlet belirli aralıklarla "5 Adet SUV İhraç Et" gibi
+                            görevler verir. Bu görevleri tamamlarsanız devasa prestij ve nakit ödüller kazanırsınız.
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-ticket"></i> Günlük Loto Sistemi (YENİ)</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            <strong>İşleyiş:</strong> Her 24 saatte bir tüm sunucu çapında büyük loto çekilişi yapılır.
+                            Bilet alarak katılabilirsiniz.<br><br>
+                            <strong>Ödül Havuzu:</strong> Katılan tüm oyuncuların bilet paraları bir kasada toplanır. En
+                            az 10 kişi katılırsa (kriter sağlanırsa), biriken paranın <strong>%50'si kazanana</strong>
+                            verilir, kalan %50'si vergi olarak devlete kesilir. Yeterli katılım olmazsa bilet paraları
+                            iade edilir.
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-gavel"></i> Müzayede Sistemi (YENİ)</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            Sadece bir tane bulunan Koleksiyon araçları (Unicorn) rastgele zamanlarda müzayedeye çıkar.
+                            Satın alabilmek için NPC'lerle veya sistemdeki diğer rakiplerle canlı açık artırma savaşına
+                            girersiniz. Alınan koleksiyon araçları satılamaz ancak her gün pasif İtibar ve Müze geliri
+                            getirir.
+                        </p>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-building-columns"></i> Bankacılık & Krediler</h3>
+                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
+                            Banka'dan kredi çekebilirsiniz. Ancak borçlarınızı geciktirirseniz araçlarınıza haciz
+                            gelebilir. Taksitli araç satışı yaparak aylık pasif gelir elde edebilirsiniz. DİKKAT:
+                            Paranızı kontrol altında tutun, çünkü her an Global Ekonomik Kriz patlak verebilir ve
+                            kasanızdan devasa giderler kesilebilir.
                         </p>
                     </div>
 
@@ -462,25 +515,106 @@
                         <h3><i class="fa-solid fa-screwdriver-wrench"></i> Illegal Garaj & Hurdalık</h3>
                         <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
                             <strong>Illegal Modifikasyonlar:</strong> İllegal Garaj'da araçlarınıza Nitro, Stage 3
-                            Yazılım veya Hayalet Plaka donanımı kurabilirsiniz. Bu işlemler aracınızın prestijini ve
-                            HP'sini artırır ancak Polis / Risk metre dolduğunda tutuklanma riskiniz vardır.<br><br>
-                            <strong>Hurdalık ve Parçalar:</strong> Hurdalık'tan "Pert" durumlu ucuza araç çekip
-                            onarabilirsiniz. Ya "Orijinal" parça (pahalı), ya "Yan Sanayi" ya da şans işi "Çıkma" parça
-                            kullanabilirsiniz. Boya ve Temizlik (Garage Wash) ile aracınızın piyasa değerini artırın.
-                        </p>
-                    </div>
-
-                    <div class="admin-card">
-                        <h3><i class="fa-solid fa-flag-checkered"></i> İllegal Yarışlar</h3>
-                        <p style="font-size:13.5px; line-height:1.6; color:var(--text-muted); margin-top:10px;">
-                            <strong>Yarış Mekanikleri:</strong> Galeride "Kişisel Aracım" (Personal) olarak atadığınız
-                            yüksek performanslı arabalarla yeraltı yarışlarına katılabilirsiniz.<br><br>
-                            Aracınızın Beygir Gücü (HP) ve Torku, yarıştaki başarı oranınızı %90'a kadar etkiler. Yüksek
-                            riskli yarışlar büyük nakit ve prestij kazandırır ancak kaza ihtimalini de göze almalısınız.
-                            Kaza yaptığınız takdirde araç ağır hasar alabilir!
+                            Yazılım kurabilirsiniz. Risk oranınız %100'e ulaşırsa Polis baskını yersiniz.<br><br>
+                            <strong>Hurdalık:</strong> İflas etmiş araçları çok ucuza alıp restore edebilirsiniz.
                         </p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- LOTO SİSTEMİ -->
+        <div class="page" id="lotoPage">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-ticket"></i> Günlük Loto</h2>
+                <p>Şansını dene, büyük ikramiyeyi kazan veya devlet vergisiyle yüzleş!</p>
+            </div>
+
+            <div style="padding: 20px;">
+                <div class="admin-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Sol: Aktif Çekiliş -->
+                    <div class="admin-card" style="text-align:center;">
+                        <h3>💰 Aktif Çekiliş Havuzu</h3>
+                        <h1 id="lotoPoolDisplay" style="color:var(--gold); font-size:48px; margin: 20px 0;">0 ₺</h1>
+                        <p id="lotoDateDisplay" style="color:var(--text-muted); margin-bottom:10px;">Çekiliş Tarihi:
+                            Yükleniyor...</p>
+                        <p id="lotoParticipantsDisplay" style="margin-bottom:20px;">Katılımcı: 0/10 (Min)</p>
+
+                        <div style="background:var(--bg-darker); padding:15px; border-radius:10px; margin-bottom:20px;">
+                            Bilet Fiyatı: <strong id="lotoTicketPriceDisplay" style="color:var(--primary);">100.000
+                                ₺</strong><br>
+                            Senin Biletlerin: <strong id="lotoMyTicketsDisplay">0/10</strong>
+                        </div>
+
+                        <button class="action-btn action-buy" onclick="buyLotoTicket()"
+                            style="width:100%; font-size:18px; padding:15px;">
+                            <i class="fa-solid fa-ticket"></i> Bilet Satın Al
+                        </button>
+                    </div>
+
+                    <!-- Sağ: Nasıl Çalışır / Geçmiş -->
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Son Çekilişler</h3>
+                        <div id="lotoHistoryContainer" style="margin-top:20px; max-height: 250px; overflow-y: auto;">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+
+                        <div
+                            style="margin-top:20px; font-size:12px; color:var(--text-muted); padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                            * Çekiliş her gün otomatik gerçekleşir.<br>
+                            * Kasada biriken paranın %50'si kazanana gider, %50'si Devlete vergi olarak kesilir.<br>
+                            * Min. 10 kişi katılmazsa iptal edilir ve paralar iade (Refund) edilir.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEGA FABRIKA SİSTEMİ -->
+        <div class="page" id="factoryv2Page">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-city"></i> Mega Fabrika (Endgame)</h2>
+                <p>Milyarlarca liralık yatırımla kurulan, sadece süper-zenginlere hitap eden üretim bandı.</p>
+            </div>
+
+            <div style="padding: 20px;" id="factoryv2Content">
+                <!-- JS ile yüklenecek -->
+            </div>
+        </div>
+
+        <!-- GLOBAL PORT (LİMAN) -->
+        <div class="page" id="portPage">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-ship"></i> Uluslararası Liman</h2>
+                <p>Yurt dışından sürpriz konteynerler getirtin veya araç ihraç ederek devasa kârlar elde edin.</p>
+            </div>
+
+            <div style="padding: 20px;" id="portContent">
+                <!-- JS ile yüklenecek -->
+            </div>
+        </div>
+
+        <!-- MÜZAYEDE (AUCTION) -->
+        <div class="page" id="auctionPage">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-gavel"></i> Müzayede Salonu</h2>
+                <p>Nadir koleksiyon araçları için dünyaca ünlü galerilerle canlı teklif savaşına girin.</p>
+            </div>
+
+            <div style="padding: 20px;" id="auctionContent">
+                <!-- JS ile yüklenecek -->
+            </div>
+        </div>
+
+        <!-- MÜZAYEDE (AUCTION) -->
+        <div class="page" id="auctionPage">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-gavel"></i> Müzayede Salonu</h2>
+                <p>Nadir koleksiyon araçları için dünyaca ünlü galerilerle canlı teklif savaşına girin.</p>
+            </div>
+
+            <div style="padding: 20px;" id="auctionContent">
+                <!-- JS ile yüklenecek -->
             </div>
         </div>
 
@@ -927,8 +1061,6 @@
         <button class="more-menu-item" data-page="feedback" onclick="navigateTo('feedback');closeMoreMenu()">
             <span><i class="fa-solid fa-comment"></i></span><span>Geri Bildirim</span>
         </button>
-    </div>
-    </div>
     </div>
 
     <!-- ======== TUTORIAL OVERLAY ======== -->

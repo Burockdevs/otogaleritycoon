@@ -2515,7 +2515,7 @@ body:has(.sidebar.collapsed) .main-content {
     background: var(--bg-card-solid);
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
-    padding: 24px 16px env(safe-area-inset-bottom) 16px;
+    padding: 24px 16px calc(140px + env(safe-area-inset-bottom)) 16px;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
     animation: slideUpSheet 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     z-index: 2001;
@@ -2813,7 +2813,7 @@ body:has(.sidebar.collapsed) .main-content {
     .main-content {
         margin-left: 0;
         padding: 12px;
-        padding-bottom: 80px;
+        padding-bottom: 100px;
     }
 
     .bottom-nav {

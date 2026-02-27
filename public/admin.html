@@ -12,21 +12,22 @@
         crossorigin="anonymous">
     <style>
         :root {
-            --bg: #0B1121;
-            --bg-card: #111827;
-            --bg-input: #1a2234;
-            --bg-hover: #1f2b42;
-            --border: rgba(42, 58, 82, 0.6);
-            --text: #f1f5f9;
-            --text-sec: #94a3b8;
-            --text-muted: #64748b;
+            --bg: #030712;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-input: rgba(31, 41, 55, 0.5);
+            --bg-hover: rgba(55, 65, 81, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f9fafb;
+            --text-sec: #9ca3af;
+            --text-muted: #6b7280;
             --accent: #3b82f6;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --premium: #a855f7;
-            --gold: #fbbf24;
-            --radius: 2px;
+            --premium: #8b5cf6;
+            --gold: #f59e0b;
+            --radius: 12px;
+            --glass: blur(12px) saturate(180%);
         }
 
         * {
@@ -124,80 +125,100 @@
             min-height: 100vh;
         }
 
-        .admin-sidebar {
-            width: 240px;
+        .admin-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
             background: var(--bg-card);
+            backdrop-filter: var(--glass);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 0 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass);
             border-right: 1px solid var(--border);
-            padding: 20px 12px;
+            padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             flex-shrink: 0;
             position: fixed;
             top: 0;
             bottom: 0;
-            z-index: 100;
-            overflow-y: auto;
+            left: 0;
+            z-index: 1100;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .admin-logo {
-            font-size: 20px;
-            font-weight: 800;
-            padding: 8px 12px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--accent), var(--premium));
+            font-size: 22px;
+            font-weight: 900;
+            padding: 12px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .admin-nav-btn {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
+            gap: 12px;
+            padding: 12px 16px;
             border: none;
             background: transparent;
             color: var(--text-sec);
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
-            border-radius: 2px;
-            transition: all 0.2s;
+            border-radius: var(--radius);
+            transition: all 0.2s ease;
             width: 100%;
             text-align: left;
-            font-family: inherit;
         }
 
         .admin-nav-btn:hover {
             background: var(--bg-hover);
             color: var(--text);
+            transform: translateX(4px);
         }
 
         .admin-nav-btn.active {
-            background: rgba(59, 130, 246, 0.15);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1));
             color: var(--accent);
-            font-weight: 600;
-        }
-
-        .admin-nav-btn .nav-icon {
-            font-size: 18px;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .admin-nav-spacer {
-            flex: 1;
-        }
-
-        .admin-nav-btn.logout {
-            color: var(--danger);
+            font-weight: 700;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .admin-main {
-            margin-left: 240px;
+            margin-left: 260px;
             flex: 1;
-            padding: 24px;
+            padding: 32px;
+            max-width: 1400px;
+            margin-right: auto;
+            transition: margin 0.3s;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1050;
         }
 
         /* ============ SECTIONS ============ */
@@ -570,33 +591,47 @@
         }
 
         /* ============ RESPONSIVE ============ */
-        @media (max-width: 768px) {
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 1024px) {
+            .admin-header {
+                display: flex;
+            }
+
             .admin-sidebar {
-                width: 60px;
-                padding: 12px 6px;
+                transform: translateX(-100%);
             }
 
-            .admin-sidebar .admin-logo,
-            .admin-sidebar .nav-label {
-                display: none;
+            .admin-sidebar.open {
+                transform: translateX(0);
             }
 
-            .admin-nav-btn {
-                justify-content: center;
-                padding: 10px;
-            }
-
-            .admin-nav-btn .nav-icon {
-                min-width: unset;
+            .sidebar-overlay.open {
+                display: block;
             }
 
             .admin-main {
-                margin-left: 60px;
-                padding: 16px;
+                margin-left: 0;
+                padding: 80px 16px 24px;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .admin-btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -616,8 +651,19 @@
     </div>
 
     <!-- MAIN LAYOUT -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <header class="admin-header" id="adminHeader" style="display:none">
+        <div class="admin-logo" style="margin-bottom:0; font-size:18px;">
+            <i class="fa-solid fa-shield-halved"></i> Admin
+        </div>
+        <button class="admin-btn ghost sm" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </header>
+
     <div class="admin-layout" id="adminLayout" style="display:none">
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar" id="adminSidebar">
+
             <div class="admin-logo"><i class="fa-solid fa-shield-halved"></i> Admin Panel</div>
             <button class="admin-nav-btn active" onclick="showSection('dashboard', this)">
                 <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span><span
@@ -1210,6 +1256,14 @@
         let currentPlayerId = null;
         let currentFeedbackId = null;
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+
         // Global Fetch Interceptor to catch 403 Session Expiry
         const originalFetch = window.fetch;
         window.fetch = async function () {
@@ -1268,6 +1322,11 @@
             document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`sec-${name}`).classList.add('active');
             if (btn) btn.classList.add('active');
+
+            // Mobile sidebar closing
+            const sidebar = document.getElementById('adminSidebar');
+            if (sidebar.classList.contains('open')) toggleSidebar();
+
             // Lazy load data
             if (name === 'dashboard') loadStats();
             else if (name === 'players') loadPlayers();
