@@ -328,7 +328,7 @@ async function seedDatabase() {
     }
 }
 
-// Direkt çalıştır
+
 if (require.main === module) {
     seedDatabase()
         .then(() => process.exit(0))
