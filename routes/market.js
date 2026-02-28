@@ -113,7 +113,7 @@ router.post('/buy/:carId', async (req, res) => {
         await connection.query('UPDATE cars SET is_available = 0, owner_type = "player" WHERE id = ?', [carId]);
         await connection.query('INSERT INTO player_cars (player_id, car_id, buy_price) VALUES (?, ?, ?)', [req.playerId, carId, car.price]);
         await connection.query('DELETE FROM favorites WHERE car_id = ?', [carId]);
-        await connection.query('UPDATE player SET balance = balance - ?, total_buys = total_buys + 1, xp = xp + ? WHERE id = ?', [car.price, Math.round(car.price / 5000), req.playerId]);
+        await connection.query('UPDATE player SET balance = balance - ?, total_buys = total_buys + 1, xp = xp + ? WHERE id = ?', [car.price, Math.round(car.price / 2000), req.playerId]);
         await connection.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "buy", ?, ?)', [req.playerId, car.price, `${car.brand_name} ${car.model_name} satın alındı`]);
         await connection.query('INSERT INTO profit_history (player_id, type, amount, description) VALUES (?, "expense", ?, ?)', [req.playerId, car.price, `${car.brand_name} ${car.model_name} alış`]);
 
@@ -198,7 +198,7 @@ router.post('/bargain/:carId', async (req, res) => {
             await connection.query('UPDATE cars SET is_available = 0, owner_type = "player", price = ? WHERE id = ?', [finalPrice, carId]);
             await connection.query('INSERT INTO player_cars (player_id, car_id, buy_price) VALUES (?, ?, ?)', [req.playerId, carId, finalPrice]);
             await connection.query('DELETE FROM favorites WHERE car_id = ?', [carId]);
-            await connection.query('UPDATE player SET balance = balance - ?, total_buys = total_buys + 1, xp = xp + ? WHERE id = ?', [finalPrice, Math.round(finalPrice / 4000), req.playerId]);
+            await connection.query('UPDATE player SET balance = balance - ?, total_buys = total_buys + 1, xp = xp + ? WHERE id = ?', [finalPrice, Math.round(finalPrice / 1500), req.playerId]);
             await connection.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "buy", ?, ?)', [req.playerId, finalPrice, `${car.brand_name} ${car.model_name} pazarlıkla alındı`]);
             await connection.query('INSERT INTO profit_history (player_id, type, amount, description) VALUES (?, "expense", ?, ?)', [req.playerId, finalPrice, `${car.brand_name} ${car.model_name} pazarlık`]);
 

@@ -240,7 +240,7 @@ function requireAuth(req, res, next) {
 }
 
 // Routes
-const authRouter = require('./routes/auth');
+const { router: authRouter } = require('./routes/auth');
 const carsRouter = require('./routes/cars');
 const marketRouter = require('./routes/market');
 const playerRouter = require('./routes/player');

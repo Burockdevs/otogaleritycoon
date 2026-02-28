@@ -10,7 +10,7 @@ async function checkLevelUp(playerId) {
     while (p.xp >= p.xp_needed) {
         p.xp -= p.xp_needed;
         p.level += 1;
-        p.xp_needed = Math.round(p.xp_needed * 1.35); // ZORLAŞTIRILDI (1.25 -> 1.35)
+        p.xp_needed = Math.round(p.xp_needed * 1.22); // KOLAYLAŞTIRILDI (1.35 -> 1.22)
         leveled = true;
 
         // Seviye ödülleri

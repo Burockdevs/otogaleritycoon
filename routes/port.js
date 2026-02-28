@@ -105,7 +105,7 @@ router.post('/export', async (req, res) => {
 
         // Ödül = Aracın sıfır üretim değeri * Çarpan (Çünkü ihraç yapılıyor)
         const payout = Math.round(car.base_price * mission.multiplier);
-        const xpGain = Math.round(payout / 50000);
+        const xpGain = Math.round(payout / 5000); // 50000 -> 5000 (10x daha fazla XP)
 
         // Aracı sil ve parsı ver
         await pool.query('DELETE FROM player_cars WHERE id = ?', [playerCarId]);
@@ -172,7 +172,7 @@ router.post('/import/:type', async (req, res) => {
             VALUES (?, ?, ?, ?, ?, 100, NOW())
         `, [pid, price, JSON.stringify(parts), damageStatus]);
 
-        await pool.query('UPDATE player SET balance = balance - ?, total_buys = total_buys + 1, xp = xp + 100 WHERE id = ?', [price, pid]);
+        await pool.query('UPDATE player SET balance = balance - ?, total_buys = total_buys + 1, xp = xp + 500 WHERE id = ?', [price, pid]);
         await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "expense", ?, "Gümrük İthalat Konteyneri")', [pid, price]);
 
         const [carDetails] = await pool.query(`

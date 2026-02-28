@@ -5,7 +5,7 @@ const { getPlayer, checkLevelUp } = require('./auth');
 
 // Fabrika Maliyeti
 const FACTORY_BUILD_COST = 100000000; // 100M TL (Endgame)
-const REQUIRED_LEVEL = 35; // Seviye şartı
+const REQUIRED_LEVEL = 30; // Seviye şartı (35 -> 30)
 
 // Fabrika durumunu getir
 router.get('/', async (req, res) => {
@@ -162,7 +162,7 @@ router.post('/claim', async (req, res) => {
         // NPC'ye Satış Gelişimi (Maliyetin ~2.2x katı veya satış fiyatı kadar net gelir)
         // Sabit olarak aracın base_price'ı üzerinden kazanç sağlarsın (çünkü maliyet %40'tı, %60 net kâr)
         const revenue = Math.round(model.base_price);
-        const xpGain = Math.round(revenue / 50000);
+        const xpGain = Math.round(revenue / 5000); // 50000 -> 5000 (10x daha fazla XP)
 
         await pool.query('UPDATE player SET balance = balance + ?, total_sales = total_sales + 1, xp = xp + ? WHERE id = ?', [revenue, xpGain, pid]);
         await pool.query('UPDATE endgame_factories SET is_producing = 0, produced_car_model_id = NULL, production_end_time = NULL, total_produced = total_produced + 1 WHERE player_id = ?', [pid]);
@@ -193,7 +193,7 @@ router.post('/upgrade', async (req, res) => {
         const p = await getPlayer(pid);
         if (p.balance < upgradeCost) return res.json({ success: false, error: `Geliştirme için ${upgradeCost.toLocaleString('tr-TR')}₺ gerekiyor!` });
 
-        await pool.query('UPDATE player SET balance = balance - ?, xp = xp + 500 WHERE id = ?', [upgradeCost, pid]);
+        await pool.query('UPDATE player SET balance = balance - ?, xp = xp + 2500 WHERE id = ?', [upgradeCost, pid]);
         await pool.query('UPDATE endgame_factories SET level = level + 1 WHERE player_id = ?', [pid]);
         await pool.query('INSERT INTO transactions (player_id, type, amount, description) VALUES (?, "expense", ?, ?)', [pid, upgradeCost, `Fabrika Ar-Ge Seviye ${factory.level + 1} Geliştirmesi`]);
 

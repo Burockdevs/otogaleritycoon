@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db/connection');
+const { checkLevelUp } = require('../services/levelUp');
+
+// Helper: oyuncu bilgilerini getir
+async function getPlayer(pid) {
+    const [p] = await pool.query(
+        'SELECT id, username, name, balance, level, xp, xp_needed, prestige_score, total_sales, total_buys, total_profit, total_loss, has_gallery, gallery_name, max_car_slots, has_factory_deal, personal_car_id, risk_level, loan_amount, loan_remaining, loan_monthly_payment, loan_months_left, loan_missed_payments, is_seized, theme, avatar, reputation, review_count, gallery_floor_level, gallery_lighting_level, can_custom_build, (SELECT COUNT(*) FROM player_cars WHERE player_id = ?) as car_count FROM player WHERE id = ?',
+        [pid, pid]
+    );
+    return p[0] || null;
+}
 
 // =================== KAYIT OL ===================
 router.post('/register', async (req, res) => {
@@ -159,4 +169,4 @@ router.get('/me', async (req, res) => {
     }
 });
 
-module.exports = router;
+module.exports = { router, getPlayer, checkLevelUp };
